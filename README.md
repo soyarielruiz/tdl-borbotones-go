@@ -1,5 +1,14 @@
 # Trabajo practico en Go
 
+**Para lanzar la consola hacer**
+
+    go run src/app.go
+
+**Si hubiese algún package sin instalar se debe lanzar (ver si se requieren permisos)**
+
+    go get -t .
+
+
 ## Ejemplos para ver
 
 ## Casos de Uso
