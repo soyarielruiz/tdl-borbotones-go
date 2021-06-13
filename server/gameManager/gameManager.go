@@ -51,7 +51,7 @@ func acceptConnections(listener net.Listener) {
 }
 
 func handleConnection(conn net.Conn, users chan user.User) {
-	message := []byte("WELCOME TO GUNO")
+	message := []byte("WELCOME TO GUNO\n")
 	conn.Write(message)
 	users <- user.CreateFromConnection(conn)
 }

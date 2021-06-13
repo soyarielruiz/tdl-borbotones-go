@@ -2,8 +2,9 @@ package user
 
 import (
 	"encoding/json"
-	"github.com/soyarielruiz/tdl-borbotones-go/server/action"
 	"net"
+
+	"github.com/soyarielruiz/tdl-borbotones-go/server/action"
 
 	"github.com/google/uuid"
 )
