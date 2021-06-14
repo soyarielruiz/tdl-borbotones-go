@@ -5,8 +5,15 @@ import (
 	"github.com/awesome-gocui/gocui"
 	"log"
 	"net"
-	"time"
-	"tp.app/src/client"
+	"os"
+	"tp.app/client/translator"
+	"tp.app/client/view"
+)
+
+const (
+	serverAddress = "127.0.0.1"
+	serverPort = "8080"
+	serverConn = "tcp"
 )
 
 func main() {
@@ -21,24 +28,28 @@ func main() {
 	g.Cursor = true
 	g.SelFgColor = gocui.ColorGreen
 
-	conn := startclient()
+	conn := startClient()
 
-	g.SetManagerFunc(client.Layout)
+	g.SetManagerFunc(view.Layout)
 
 	// Bind enter key to input to send new messages.
 	err = g.SetKeybinding("jugador", gocui.KeyEnter, gocui.ModNone, func(g *gocui.Gui, iv *gocui.View) error {
+		iv.Autoscroll = true
+		iv.Editable = true
 		// Read buffer from the beginning.
 		iv.Rewind()
 
 		// Send message if text was entered.
 		if len(iv.Buffer()) >= 2 {
-			msg := client.AddingValue(iv.Buffer())
-			conn.Write([]byte(msg))
-			// Reset input.
-			iv.Clear()
+			msg := translator.AddingValue(iv.Buffer())
+			_, err := conn.Write([]byte(msg))
+			x, y := iv.Cursor()
 
-			// Reset cursor.
-			err := iv.SetCursor(1, 1)
+			//adding a enter
+			y = y + 1
+			x = 0
+
+			err = iv.SetCursorUnrestricted(x, y)
 			if err != nil {
 				log.Println("Failed to set cursor:", err)
 			}
@@ -51,25 +62,32 @@ func main() {
 		log.Println("Cannot bind the enter key:", err)
 	}
 
-	if err := client.InitKeybindings(g); err != nil {
+	if err := view.InitKeybindings(g); err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func startclient() *net.TCPConn {
-	time.Sleep(time.Second) // so that server has time to start
-	servAddr := "127.0.0.1:8081"
-	tcpAddr, _ := net.ResolveTCPAddr("tcp", servAddr)
-	conn, _ := net.DialTCP("tcp", nil, tcpAddr)
-	//conn.SetNoDelay(false)
-	conn.SetWriteBuffer(10000)
-	//msg := "abc\n"
-	start := time.Now()
-	//for i := 0; i < 1000000; i++ {
-	//	conn.Write([]byte(msg))
-	//	//bufio.NewReader(conn).ReadString('\n')
-	//	//fmt.Print("Message from server: ", response)
-	//}
-	fmt.Println("took:", time.Since(start))
+func startClient() *net.TCPConn {
+
+	serverConnection := serverAddress + ":" + serverPort
+
+	log.Println("Starting " + serverConn + " client on " + serverConnection)
+
+	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress + ":" + serverPort)
+	checkError(err)
+
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
+	checkError(err)
+
+	err = conn.SetWriteBuffer(10)
+	checkError(err)
+
 	return conn
+}
+
+func checkError(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		os.Exit(1)
+	}
 }

@@ -1,6 +1,7 @@
 package gameManager
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -54,6 +55,14 @@ func acceptConnections(listener net.Listener) {
 
 func handleConnection(conn net.Conn, users chan user.User) {
 	message := []byte("WELCOME TO GUNO\n")
-	conn.Write(message)
+	_, err := conn.Write(message)
+	checkError(err)
 	users <- user.CreateFromConnection(conn)
+}
+
+func checkError(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		os.Exit(1)
+	}
 }

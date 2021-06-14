@@ -1,4 +1,4 @@
-package client
+package view
 
 import (
 	"errors"
@@ -7,10 +7,6 @@ import (
 	"log"
 )
 
-var (
-	viewArr = []string{"jugador", "mesa"}
-	active  = 0
-)
 
 func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 	if _, err := g.SetCurrentView(name); err != nil {
@@ -19,30 +15,25 @@ func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 	return g.SetViewOnTop(name)
 }
 
-func NextView(g *gocui.Gui, v *gocui.View) error {
-	nextIndex := (active + 1) % len(viewArr)
-	name := viewArr[nextIndex]
+//TODO: Receive message from game and print it
+func ReceiveMsgFromGame(g *gocui.Gui, v *gocui.View) error {
+	name := "Mesa"
+	g.Cursor = false
 
 	out, err := g.View("mesa")
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(out, "Paso de vista "+v.Name()+" a "+name)
+	fmt.Fprintln(out, "Jugador ")
 
 	if _, err := setCurrentViewOnTop(g, name); err != nil {
 		return err
 	}
 
-	if nextIndex <= 10 {
-		g.Cursor = true
-	} else {
-		g.Cursor = false
-	}
-
-	active = nextIndex
 	return nil
 }
 
+// Layout Creates view with a division in full size
 func Layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
 	if v, err := g.SetView("jugador", 0, 0, maxX/2-1, maxY/2-1, 0); err != nil {
@@ -82,9 +73,6 @@ func InitKeybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("", gocui.KeyEsc, gocui.ModNone, Quit); err != nil {
 		log.Panicln(err)
 	}
-	//if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, NextView); err != nil {
-	//	log.Panicln(err)
-	//}
 
 	if err := g.MainLoop(); err != nil && !errors.Is(err, gocui.ErrQuit) {
 		log.Panicln(err)
