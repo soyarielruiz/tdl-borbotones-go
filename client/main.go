@@ -41,7 +41,7 @@ func main() {
 
 		// Send message if text was entered.
 		if len(iv.Buffer()) >= 2 {
-			msg := translator.AddingValue(iv.Buffer())
+			msg := translator.ToJSON(iv.Buffer())
 			_, err := conn.Write([]byte(msg))
 			x, y := iv.Cursor()
 
