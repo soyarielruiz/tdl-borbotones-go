@@ -43,6 +43,9 @@ func main() {
 		if len(iv.Buffer()) >= 2 {
 			msg := translator.ToJSON(iv.Buffer())
 			_, err := conn.Write([]byte(msg))
+			checkError(err)
+
+			//get cursor position
 			x, y := iv.Cursor()
 
 			//adding a enter
