@@ -6,8 +6,8 @@ import (
 	"log"
 	"net"
 	"os"
-	"tp.app/client/translator"
-	"tp.app/client/view"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 )
 
 const (
