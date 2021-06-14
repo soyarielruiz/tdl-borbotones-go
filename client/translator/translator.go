@@ -2,7 +2,6 @@ package translator
 
 import (
 	"encoding/json"
-	"github.com/soyarielruiz/tdl-borbotones-go/server/action"
 	"log"
 )
 
@@ -41,9 +40,4 @@ func SendMessage(messageToSend string) string {
 func ReceiveMessage(messageToReceive []byte) interface{} {
 	_, messageToString := translateMessage(messageToReceive)
 	return messageToString
-}
-
-func AddingValue(message string) string {
-	var card = action.CreateFromMessage("1", message)
-	return card.String()
 }
