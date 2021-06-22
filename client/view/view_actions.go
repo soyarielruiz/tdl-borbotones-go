@@ -1,10 +1,13 @@
 package view
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
+	"io"
 	"log"
+	"net"
 )
 
 
@@ -16,7 +19,10 @@ func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 }
 
 //TODO: Receive message from game and print it
-func ReceiveMsgFromGame(g *gocui.Gui, v *gocui.View) error {
+func ReceiveMsgFromGame(g *gocui.Gui, v *gocui.View, conn *net.TCPConn) error {
+	// receives msg from server
+	var messageFromServer bytes.Buffer
+	io.Copy(&messageFromServer, conn)
 	name := "Mesa"
 	g.Cursor = false
 
@@ -24,7 +30,7 @@ func ReceiveMsgFromGame(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(out, "Jugador ")
+	fmt.Fprintln(out, "Server: %s", messageFromServer.String())
 
 	if _, err := setCurrentViewOnTop(g, name); err != nil {
 		return err

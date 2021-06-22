@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
+
+	//"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
+	"tdl-borbotones-go/client/view"
 	"log"
 	"net"
 	"os"
+	"tdl-borbotones-go/tools/action"
 )
 
 const (
@@ -44,7 +46,8 @@ func main() {
 		if len(iv.Buffer()) >= 2 {
 
 			encoder := json.NewEncoder(conn)
-			messageToSend := translator.CreateAnAction(string(iv.Buffer()))
+			//messageToSend := translator.CreateAnAction(string(iv.Buffer()))
+			messageToSend := action.Action{action.DROP, action.Card{9, action.GREEN}, "", iv.Buffer()}
 
 			err := encoder.Encode(&messageToSend)
 			checkError(err)
@@ -70,6 +73,10 @@ func main() {
 	}
 
 	if err := view.InitKeybindings(g); err != nil {
+		log.Fatalln(err)
+	}
+	v, err := g.View("mesa")
+	if err := view.ReceiveMsgFromGame(g, v, conn); err != nil {
 		log.Fatalln(err)
 	}
 }

@@ -5,17 +5,11 @@ github.com/gdamore/encoding v1.0.0/go.mod h1:alR0ol34c49FCSBLjhosxzcPHQbf2trDkoo
 github.com/gdamore/tcell/v2 v2.0.0 h1:GRWG8aLfWAlekj9Q6W29bVvkHENc6hp79XOqG4AWDOs=
 github.com/gdamore/tcell/v2 v2.0.0/go.mod h1:vSVL/GV5mCSlPC6thFP5kfOFdM9MGZcalipmpTxTgQA=
 github.com/gdamore/tcell/v2 v2.3.11/go.mod h1:cTTuF84Dlj/RqmaCIV5p4w8uG1zWdk0SF6oBpwHp4fU=
-github.com/google/uuid v1.2.0 h1:qJYtXnJRWmpe7m/3XlyhrsLrEURqHRM2kxzoxXqyUDs=
-github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/lucasb-eyer/go-colorful v1.0.3 h1:QIbQXiugsb+q10B+MI+7DI1oQLdmnep86tWFlaaUAac=
 github.com/lucasb-eyer/go-colorful v1.0.3/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
 github.com/mattn/go-runewidth v0.0.7/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/mattn/go-runewidth v0.0.9 h1:Lm995f3rfxdpd6TSmuVCHVb/QhupuXlYr8sCI/QdE+0=
 github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
-github.com/soyarielruiz/tdl-borbotones-go/client v0.0.0-20210614180401-d7832a1739da h1:v6lVoMFU6KNLiU7tMogezWWpl411eFCABMk6x46NIb4=
-github.com/soyarielruiz/tdl-borbotones-go/client v0.0.0-20210614180401-d7832a1739da/go.mod h1:y23AYSEPSkuNikgrjZ/iuG2BF13HoTfqKrNIjkwQJzs=
-github.com/soyarielruiz/tdl-borbotones-go/server v0.0.0-20210614180401-d7832a1739da h1:9Ej8btGUNjvck+ESbG8KARipnhQfIegQrnl+9SYb1SQ=
-github.com/soyarielruiz/tdl-borbotones-go/server v0.0.0-20210614180401-d7832a1739da/go.mod h1:VpI46RPEjXILwgVhTu1KSFRluvQtK0oL/noFMzC22XY=
 golang.org/x/sys v0.0.0-20190626150813-e07cf5db2756/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f h1:+Nyd8tzPX9R7BWHguqsrbFdRx3WQ/1ib8I44HXV5yTA=
 golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
