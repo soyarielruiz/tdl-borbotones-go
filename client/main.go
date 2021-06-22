@@ -1,13 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 	"log"
 	"net"
 	"os"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 )
 
 const (
@@ -41,14 +42,17 @@ func main() {
 
 		// Send message if text was entered.
 		if len(iv.Buffer()) >= 2 {
-			msg := translator.ToJSON(iv.Buffer())
-			_, err := conn.Write([]byte(msg))
+
+			encoder := json.NewEncoder(conn)
+			messageToSend := translator.CreateAnAction(string(iv.Buffer()))
+
+			err := encoder.Encode(&messageToSend)
 			checkError(err)
 
 			//get cursor position
 			x, y := iv.Cursor()
 
-			//adding a enter
+			//adding a visual enter
 			y = y + 1
 			x = 0
 

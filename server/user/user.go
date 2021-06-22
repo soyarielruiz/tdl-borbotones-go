@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/soyarielruiz/tdl-borbotones-go/server/action"
+	"tdl-borbotones-go/tools/action"
 
 	"github.com/google/uuid"
 )
