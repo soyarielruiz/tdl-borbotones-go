@@ -25,6 +25,10 @@ func (a Card) String() string {
 	return fmt.Sprintf("Number:%d; Suit:\"%s\"", a.Number, a.Suit)
 }
 
+func (a Command) String() string {
+	return fmt.Sprintf("Command:\"%s\"", string(a))
+}
+
 const (
 	DROP Command = "drop"
 	TAKE Command = "take"

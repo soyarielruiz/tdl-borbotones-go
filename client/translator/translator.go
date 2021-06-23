@@ -1,61 +1,55 @@
 package translator
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"os"
 	"strconv"
 	"strings"
-	"github.com/soyarielruiz/tdl-borbotones-go/tools/action"
 )
 
-func CreateAnAction(messageToSend string) action.Action {
+func CreateAnAction(messageToSend string) tools.Action {
 	words := strings.Fields(messageToSend)
 
 	command := getCommandFromMessage(words[0])
 	card := getCardFromMessage(words[1], words[2])
 	message := strings.Join(words[3:], " ")
 
-	return action.Action{command, card, "", message}
+	return tools.Action{command, card, "", message}
 }
 
-func getCardFromMessage(color string, number string) action.Card {
-	var colorToUse = action.GREEN
+func getCardFromMessage(color string, number string) tools.Card {
+	var colorToUse = tools.GREEN
 	switch strings.ToLower(color) {
-	case action.GREEN:
-		colorToUse = action.GREEN
-		break
-	case action.YELLOW:
-		colorToUse = action.YELLOW
-		break
-	case action.RED:
-		colorToUse = action.RED
-		break
-	case action.BLUE:
-		colorToUse = action.BLUE
-		break
+	case string(tools.GREEN):
+		colorToUse = tools.GREEN
+	case string(tools.YELLOW):
+		colorToUse = tools.YELLOW
+	case string(tools.RED):
+		colorToUse = tools.RED
+	case string(tools.BLUE):
+		colorToUse = tools.BLUE
 	default:
-		colorToUse = action.GREEN
+		colorToUse = tools.GREEN
 	}
 
 	value, err := strconv.ParseInt(number, 10, 64)
 	checkError(err)
 
-	return action.Card{value, colorToUse}
+	return tools.Card{int(value), colorToUse}
 }
 
-func getCommandFromMessage(message string) action.Command {
+func getCommandFromMessage(message string) tools.Command {
 
 	switch strings.ToLower(message) {
-	case action.DROP:
-		return action.DROP
-	case action.EXIT:
-		return action.EXIT
-	case action.TAKE:
-		return action.TAKE
+	case string(tools.DROP):
+		return tools.DROP
+	case string(tools.EXIT):
+		return tools.EXIT
+	case string(tools.TAKE):
+		return tools.TAKE
 	default:
-		return action.DROP
+		return tools.DROP
 	}
 }
 
@@ -64,26 +58,4 @@ func checkError(err error) {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
 	}
-}
-
-func translateMessage(messageToTranslate []byte) (error, Message) {
-	var msg Message
-
-	err := json.Unmarshal(messageToTranslate, &msg)
-
-	if err != nil {
-		log.Fatalf("Message cannot be decoding")
-	}
-
-	return err, msg
-}
-
-func SendMessage(messageToSend string) string {
-	messageJson := ToJSON(messageToSend)
-	return messageJson
-}
-
-func ReceiveMessage(messageToReceive []byte) interface{} {
-	_, messageToString := translateMessage(messageToReceive)
-	return messageToString
 }
