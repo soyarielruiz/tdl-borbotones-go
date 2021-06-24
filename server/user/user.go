@@ -21,6 +21,7 @@ type User struct {
 func (u User) String() string {
 	return fmt.Sprintf("PlayerId:\"%s\", conn:\"%s\"", u.PlayerId, u.conn.RemoteAddr())
 }
+
 func CreateFromConnection(conn net.Conn) User {
 	var usr = User{make(chan action.Action), make(chan action.Action), uuid.New().String(), conn}
 	go Send(usr)
