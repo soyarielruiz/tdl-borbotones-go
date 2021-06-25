@@ -3,21 +3,24 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
+	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
+
 	"log"
 	"net"
 	"os"
+
+	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 )
 
 const (
 	serverAddress = "127.0.0.1"
-	serverPort = "8080"
-	serverConn = "tcp"
+	serverPort    = "8080"
+	serverConn    = "tcp"
 )
 
 func main() {
@@ -73,17 +76,26 @@ func main() {
 		log.Println("Cannot bind the enter key:", err)
 	}
 
+	go func() {
+		for {
+			time.Sleep(2 * time.Second)
+			decoder := json.NewDecoder(conn)
+			var action tools.Action
+			decoder.Decode(&action)
+			v, _ := g.View("mesa")
+			fmt.Fprintln(v, "Action: ", action)
+		}
+	}()
+	// go receivingData(g, conn)
+
 	if err := view.InitKeybindings(g); err != nil {
 		log.Fatalln(err)
 	}
 
-	v, err := g.View("mesa")
-
-	go receivingData(g, v, conn)
 }
 
-func receivingData(g *gocui.Gui, v *gocui.View, conn *net.TCPConn) {
-	if err := ReceiveMsgFromGame(g, v, conn); err != nil {
+func receivingData(g *gocui.Gui, conn *net.TCPConn) {
+	if err := ReceiveMsgFromGame(g, conn); err != nil {
 		log.Fatalln(err)
 	}
 }
@@ -94,7 +106,7 @@ func startClient() *net.TCPConn {
 
 	log.Println("Starting " + serverConn + " client on " + serverConnection)
 
-	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress + ":" + serverPort)
+	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
 	checkError(err)
 
 	conn, err := net.DialTCP("tcp", nil, tcpAddr)
@@ -158,35 +170,14 @@ func getCommandFromMessage(message string) tools.Command {
 	}
 }
 
-func ReceiveMsgFromGame(g *gocui.Gui, v *gocui.View, conn *net.TCPConn) error {
-	// receives msg from server
-	//var messageFromServer bytes.Buffer
-	//io.Copy(&messageFromServer, conn)
-	//fmt.Println("tiene ", messageFromServer)
+func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
+	time.Sleep(2 * time.Second)
 	decoder := json.NewDecoder(conn)
 	var action tools.Action
 	decoder.Decode(&action)
-	fmt.Println("Tiene action: ", action)
-	name := "Mesa"
-	g.Cursor = false
 
-	out, err := g.View("mesa")
-	if err != nil {
-		return err
-	}
-
-	fmt.Fprintln(out, "Server: %s", action)
-
-	if _, err := setCurrentViewOnTop(g, name); err != nil {
-		return err
-	}
+	out, _ := g.View("mesa")
+	fmt.Fprintln(out, "Action: ", action)
 
 	return nil
-}
-
-func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
-	if _, err := g.SetCurrentView(name); err != nil {
-		return nil, err
-	}
-	return g.SetViewOnTop(name)
 }
