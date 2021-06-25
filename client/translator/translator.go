@@ -1,43 +1,73 @@
 package translator
 
 import (
-	"encoding/json"
-	"log"
+	//"errors"
+	"fmt"
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
+	"os"
+	"strconv"
+	"strings"
 )
 
-type Message struct {
-	msg string
+func CreateAnAction(messageToSend string) tools.Action {
+	words := strings.Fields(messageToSend)
+
+	command := getCommandFromMessage(words[0])
+	card := getCardFromMessage(words[1], words[2])
+	message := strings.Join(words[3:], " ")
+
+	return tools.Action{command, card, "", message}
 }
 
-func ToJSON(messageToSend string) string {
-	message := Message{messageToSend}
-
-	messageEncoded, err := json.Marshal(message)
-
-	if err != nil {
-		log.Fatalf("Message cannot be encoding")
+func getCardFromMessage(color string, number string) tools.Card {
+	var colorToUse = tools.GREEN
+	switch strings.ToLower(color) {
+	case string(tools.GREEN):
+		colorToUse = tools.GREEN
+	case string(tools.YELLOW):
+		colorToUse = tools.YELLOW
+	case string(tools.RED):
+		colorToUse = tools.RED
+	case string(tools.BLUE):
+		colorToUse = tools.BLUE
+	default:
+		colorToUse = tools.GREEN
 	}
-	return string(messageEncoded)
+
+	value, err := strconv.ParseInt(number, 10, 64)
+	checkError(err)
+
+	return tools.Card{int(value), colorToUse}
 }
 
-func translateMessage(messageToTranslate []byte) (error, Message) {
-	var msg Message
+func getCommandFromMessage(message string) tools.Command {
 
-	err := json.Unmarshal(messageToTranslate, &msg)
-
-	if err != nil {
-		log.Fatalf("Message cannot be decoding")
+	switch strings.ToLower(message) {
+	case string(tools.DROP):
+		return tools.DROP
+	case string(tools.EXIT):
+		return tools.EXIT
+	case string(tools.TAKE):
+		return tools.TAKE
+	default:
+		return tools.DROP
 	}
-
-	return err, msg
 }
 
-func SendMessage(messageToSend string) string {
-	messageJson := ToJSON(messageToSend)
-	return messageJson
+func TranslateMessageFromServer(action tools.Action) (string, error) {
+	var response string
+	if len(action.Command.String()) > 1 {
+		response = string(action.PlayerId) + " : " + string(action.Command) +
+			" " + string(action.Card.Suit) + " " + string(action.Card.Number)
+
+		return response, nil
+	}
+	return "", nil//errors.New("object:Wrong action")
 }
 
-func ReceiveMessage(messageToReceive []byte) interface{} {
-	_, messageToString := translateMessage(messageToReceive)
-	return messageToString
+func checkError(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		os.Exit(1)
+	}
 }

@@ -1,19 +1,25 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 	"net"
 	"os"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 )
 
 const (
 	serverAddress = "127.0.0.1"
-	serverPort = "8080"
-	serverConn = "tcp"
+	serverPort    = "8080"
+	serverConn    = "tcp"
 )
 
 func main() {
@@ -41,14 +47,18 @@ func main() {
 
 		// Send message if text was entered.
 		if len(iv.Buffer()) >= 2 {
-			msg := translator.ToJSON(iv.Buffer())
-			_, err := conn.Write([]byte(msg))
+
+			encoder := json.NewEncoder(conn)
+			messageToUse := string(iv.Buffer())
+			messageToSend := createAnAction(messageToUse)
+
+			err := encoder.Encode(&messageToSend)
 			checkError(err)
 
 			//get cursor position
 			x, y := iv.Cursor()
 
-			//adding a enter
+			//adding a visual enter
 			y = y + 1
 			x = 0
 
@@ -65,7 +75,17 @@ func main() {
 		log.Println("Cannot bind the enter key:", err)
 	}
 
+	// receiving from server
+	go receivingData(g, conn)
+
 	if err := view.InitKeybindings(g); err != nil {
+		log.Fatalln(err)
+	}
+
+}
+
+func receivingData(g *gocui.Gui, conn *net.TCPConn) {
+	if err := ReceiveMsgFromGame(g, conn); err != nil {
 		log.Fatalln(err)
 	}
 }
@@ -76,7 +96,7 @@ func startClient() *net.TCPConn {
 
 	log.Println("Starting " + serverConn + " client on " + serverConnection)
 
-	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress + ":" + serverPort)
+	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
 	checkError(err)
 
 	conn, err := net.DialTCP("tcp", nil, tcpAddr)
@@ -92,5 +112,70 @@ func checkError(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
+	}
+}
+
+func createAnAction(messageToSend string) tools.Action {
+	words := strings.Fields(messageToSend)
+
+	command := getCommandFromMessage(words[0])
+	card := getCardFromMessage(words[1], words[2])
+	message := strings.Join(words[3:], " ")
+
+	return tools.Action{command, card, "", message}
+}
+
+func getCardFromMessage(color string, number string) tools.Card {
+	var colorToUse = tools.GREEN
+	switch strings.ToLower(color) {
+	case string(tools.GREEN):
+		colorToUse = tools.GREEN
+	case string(tools.YELLOW):
+		colorToUse = tools.YELLOW
+	case string(tools.RED):
+		colorToUse = tools.RED
+	case string(tools.BLUE):
+		colorToUse = tools.BLUE
+	default:
+		colorToUse = tools.GREEN
+	}
+
+	value, err := strconv.ParseInt(number, 10, 64)
+	checkError(err)
+
+	return tools.Card{int(value), colorToUse}
+}
+
+func getCommandFromMessage(message string) tools.Command {
+
+	switch strings.ToLower(message) {
+	case string(tools.DROP):
+		return tools.DROP
+	case string(tools.EXIT):
+		return tools.EXIT
+	case string(tools.TAKE):
+		return tools.TAKE
+	default:
+		return tools.DROP
+	}
+}
+
+func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
+	//wait a starting moment
+	time.Sleep(1*time.Second)
+	for {
+		decoder := json.NewDecoder(conn)
+		var action tools.Action
+		decoder.Decode(&action)
+
+		if len(action.Command.String()) > 1 {
+			out, _ := g.View("mesa")
+			//fmt.Fprintln(out, "message2 : ", action.Command.String())
+			message, err := translator.TranslateMessageFromServer(action)
+			if err == nil {
+				fmt.Fprintln(out, message)
+				message = ""
+			}
+		}
 	}
 }
