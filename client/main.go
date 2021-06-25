@@ -1,15 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
-	tools "github.com/soyarielruiz/tdl-borbotones-go/tools/action"
-	"io"
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"strconv"
-
-	//"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
 	"strings"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
@@ -164,9 +160,13 @@ func getCommandFromMessage(message string) tools.Command {
 
 func ReceiveMsgFromGame(g *gocui.Gui, v *gocui.View, conn *net.TCPConn) error {
 	// receives msg from server
-	var messageFromServer bytes.Buffer
-	io.Copy(&messageFromServer, conn)
-	fmt.Println("tiene ", messageFromServer)
+	//var messageFromServer bytes.Buffer
+	//io.Copy(&messageFromServer, conn)
+	//fmt.Println("tiene ", messageFromServer)
+	decoder := json.NewDecoder(conn)
+	var action tools.Action
+	decoder.Decode(&action)
+	fmt.Println("Tiene action: ", action)
 	name := "Mesa"
 	g.Cursor = false
 
@@ -175,7 +175,7 @@ func ReceiveMsgFromGame(g *gocui.Gui, v *gocui.View, conn *net.TCPConn) error {
 		return err
 	}
 
-	fmt.Fprintln(out, "Server: %s", messageFromServer.String())
+	fmt.Fprintln(out, "Server: %s", action)
 
 	if _, err := setCurrentViewOnTop(g, name); err != nil {
 		return err
