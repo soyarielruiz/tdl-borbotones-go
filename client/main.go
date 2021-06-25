@@ -3,16 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
-
 	"log"
 	"net"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 )
@@ -76,17 +75,8 @@ func main() {
 		log.Println("Cannot bind the enter key:", err)
 	}
 
-	go func() {
-		for {
-			time.Sleep(2 * time.Second)
-			decoder := json.NewDecoder(conn)
-			var action tools.Action
-			decoder.Decode(&action)
-			v, _ := g.View("mesa")
-			fmt.Fprintln(v, "Action: ", action)
-		}
-	}()
-	// go receivingData(g, conn)
+	// receiving from server
+	go receivingData(g, conn)
 
 	if err := view.InitKeybindings(g); err != nil {
 		log.Fatalln(err)
@@ -171,13 +161,21 @@ func getCommandFromMessage(message string) tools.Command {
 }
 
 func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
-	time.Sleep(2 * time.Second)
-	decoder := json.NewDecoder(conn)
-	var action tools.Action
-	decoder.Decode(&action)
+	//wait a starting moment
+	time.Sleep(1*time.Second)
+	for {
+		decoder := json.NewDecoder(conn)
+		var action tools.Action
+		decoder.Decode(&action)
 
-	out, _ := g.View("mesa")
-	fmt.Fprintln(out, "Action: ", action)
-
-	return nil
+		if len(action.Command.String()) > 1 {
+			out, _ := g.View("mesa")
+			//fmt.Fprintln(out, "message2 : ", action.Command.String())
+			message, err := translator.TranslateMessageFromServer(action)
+			if err == nil {
+				fmt.Fprintln(out, message)
+				message = ""
+			}
+		}
+	}
 }

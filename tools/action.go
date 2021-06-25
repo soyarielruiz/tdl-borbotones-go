@@ -21,12 +21,12 @@ type Card struct {
 	Suit   Suit `json:"suit"`
 }
 
-func (a Card) String() string {
-	return fmt.Sprintf("Number:%d; Suit:\"%s\"", a.Number, a.Suit)
+func (a Card) String() (string, string) {
+	return string(rune(a.Number)), string(a.Suit)
 }
 
 func (a Command) String() string {
-	return fmt.Sprintf("Command:\"%s\"", string(a))
+	return string(a)
 }
 
 const (

@@ -1,6 +1,7 @@
 package translator
 
 import (
+	//"errors"
 	"fmt"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"os"
@@ -51,6 +52,17 @@ func getCommandFromMessage(message string) tools.Command {
 	default:
 		return tools.DROP
 	}
+}
+
+func TranslateMessageFromServer(action tools.Action) (string, error) {
+	var response string
+	if len(action.Command.String()) > 1 {
+		response = string(action.PlayerId) + " : " + string(action.Command) +
+			" " + string(action.Card.Suit) + " " + string(action.Card.Number)
+
+		return response, nil
+	}
+	return "", nil//errors.New("object:Wrong action")
 }
 
 func checkError(err error) {

@@ -1,13 +1,14 @@
 package view
 
 import (
-	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
-	"io"
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 	"net"
+	"time"
 )
 
 
@@ -18,25 +19,19 @@ func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 	return g.SetViewOnTop(name)
 }
 
-//TODO: Receive message from game and print it
-func ReceiveMsgFromGame(g *gocui.Gui, v *gocui.View, conn *net.TCPConn) error {
-	// receives msg from server
-	var messageFromServer bytes.Buffer
-	io.Copy(&messageFromServer, conn)
-	name := "Mesa"
-	g.Cursor = false
+func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
+	//wait a starting moment
+	time.Sleep(1*time.Second)
+	for {
+		decoder := json.NewDecoder(conn)
+		var action tools.Action
+		decoder.Decode(&action)
 
-	out, err := g.View("mesa")
-	if err != nil {
-		return err
+		if len(action.Command.String()) > 1 {
+			out, _ := g.View("mesa")
+			fmt.Fprintln(out, "Action: ", action)
+		}
 	}
-	fmt.Fprintln(out, "Server: %s", messageFromServer.String())
-
-	if _, err := setCurrentViewOnTop(g, name); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Layout Creates view with a division in full size

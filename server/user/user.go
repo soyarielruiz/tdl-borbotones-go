@@ -35,8 +35,10 @@ func Send(usr User) {
 			log.Println("Send Close chan")
 			break
 		}
-		// log.Printf("Sending action to usr %s. %s", usr, action)
+		action.PlayerId =  usr.PlayerId
+		log.Printf("Sending action to usr %s", action)
 		encoder.Encode(&action)
+		action.PlayerId =  ""
 	}
 }
 
