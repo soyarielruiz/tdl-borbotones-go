@@ -33,7 +33,7 @@ func acceptConnections(listener net.Listener) {
 	user_counter := 0
 	game_number := 1
 	users := make(chan user.User)
-	go game.Start(users, game_number)
+	go game.Run(users, game_number)
 	for {
 		client, err := listener.Accept()
 		log.Printf("New connection accepted from %s\n", client.RemoteAddr())
@@ -45,7 +45,7 @@ func acceptConnections(listener net.Listener) {
 			log.Printf("New game started %d", game_number)
 			game_number = game_number + 1
 			users = make(chan user.User)
-			go game.Start(users, game_number)
+			go game.Run(users, game_number)
 			user_counter = 0
 		}
 		go handleConnection(client, users)

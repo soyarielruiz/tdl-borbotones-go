@@ -1,95 +1,93 @@
 package game
 
 import (
-	"log"
-	"math/rand"
-	"time"
-
+	"github.com/soyarielruiz/tdl-borbotones-go/server/commandHandler"
+	"github.com/soyarielruiz/tdl-borbotones-go/server/deck"
+	"github.com/soyarielruiz/tdl-borbotones-go/server/discardPile"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
+	"log"
 
-	"github.com/soyarielruiz/tdl-borbotones-go/server/stack"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/user"
 )
 
-type Card struct {
-	Number int
-	Suit   string
-}
-
 type Game struct {
-	UserChan    <-chan user.User
-	Users       map[string]user.User
-	Deck        *stack.Stack
-	DiscardPile *stack.Stack
-	RecvChan    chan tools.Action
+	UserChan         <-chan user.User
+	Users            map[string]user.User
+	Deck             deck.Deck
+	DiscardPile      discardPile.DiscardPile
+	RecvChan         chan tools.Action
+	CommandHandler   map[tools.Command]commandHandler.CommandHandler
+	Ended            bool
+	NextUserIdToPlay string
+	GameNumber       int
 }
 
-func (g *Game) Init() {
-	g.Deck = stack.New()
-	g.DiscardPile = stack.New()
-	numbers := [10]int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
-	suits := [4]string{"red", "green", "blue", "yellow"}
-	for _, s := range suits {
-		for _, n := range numbers {
-			g.DiscardPile.Push(Card{n, s})
-		}
-	}
-	g.shuffle()
+func (game *Game) Init() {
+	game.Deck = deck.Deck{}
+	game.Deck.Init()
+	game.DiscardPile = discardPile.DiscardPile{}
+	game.DiscardPile.Init()
+	game.Ended = false
+	game.CommandHandler[tools.DROP] = commandHandler.DropHandler{}
+	game.CommandHandler[tools.EXIT] = commandHandler.ExitHandler{}
+	game.CommandHandler[tools.TAKE] = commandHandler.TakeHandler{}
 }
 
-func (g *Game) shuffle() {
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(g.DiscardPile.Size(), func(i, j int) { g.DiscardPile.Swap(i, j) })
-	g.Deck.Push(g.DiscardPile)
-	g.DiscardPile.Clear()
-}
-
-func Start(uc chan user.User, gameNumber int) {
+func Run(userChannel chan user.User, gameNumber int) {
 	log.Printf("Initializing game number: %d\n", gameNumber)
-	g := Game{UserChan: uc, Users: make(map[string]user.User), RecvChan: make(chan tools.Action)}
-	g.recvUsers(gameNumber)
-	exit := false
-	for !exit {
-		for k, v := range g.Users {
-			log.Printf("Waiting for action from %s in game %d\n", k, gameNumber)
-			actionToApply := <-v.ReceiveChannel
-			g.sendMsg(&actionToApply)
-			if actionToApply.Command == "exit" {
-				log.Printf("Exit command received in game %d\n", gameNumber)
-				exit = true
-				break
-			}
-		}
+	game := createGame(userChannel, gameNumber)
+	game.recvUsers()
+	game.sendInitialCards()
+	for !game.Ended {
+		action := <-game.RecvChan
+		game.CommandHandler[action.Command].Handle(action, &game)
 	}
-	g.closeAll(gameNumber)
+	game.closeAll(gameNumber)
 }
 
-func (g *Game) recvUsers(number int) {
+func createGame(userChannel chan user.User, gameNumber int) Game {
+	game := Game{UserChan: userChannel, Users: make(map[string]user.User), RecvChan: make(chan tools.Action)}
+	game.GameNumber = gameNumber
+	game.Init()
+	return game
+}
+
+func (game *Game) recvUsers() {
 	for {
-		u := <-g.UserChan
-		u.ReceiveChannel = g.RecvChan
+		u := <-game.UserChan
+		u.ReceiveChannel = game.RecvChan
 		go user.Receive(u)
-		log.Printf("New usr received in game %d. %s", number, u)
-		g.Users[u.PlayerId] = u
-		if len(g.Users) == 3 {
-			log.Printf("3 users connect to game %d. Starting game", number)
+		log.Printf("New usr received in game %d. %s", game.GameNumber, u)
+		game.Users[u.PlayerId] = u
+		if len(game.Users) == 3 {
+			log.Printf("3 users connect to game %d. Starting game", game.GameNumber)
 			return
 		} else {
-			log.Printf("No enough users connected to game %d for start the game", number)
+			log.Printf("No enough users connected to game %d for start the game", gameNumber)
 		}
 	}
 }
 
-func (g *Game) sendMsg(a *tools.Action) {
-	for _, u := range g.Users {
+func (game *Game) sendToAll(a *tools.Action) {
+	for _, u := range game.Users {
 		u.SendChannel <- *a
 	}
 }
 
-func (g *Game) closeAll(gn int) {
+func (game *Game) closeAll(gn int) {
 	log.Printf("Close All in game %d\n", gn)
-	for _, u := range g.Users {
+	for _, u := range game.Users {
 		close(u.SendChannel)
 	}
-	close(g.RecvChan)
+	close(game.RecvChan)
+}
+
+func (game *Game) IsUserTurn(id string) bool {
+	return game.NextUserIdToPlay == id
+}
+
+func (game *Game) sendInitialCards() {
+	for _, u := range game.Users {
+		u.SendChannel <- tools.Action{"", }
+	}
 }

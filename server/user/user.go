@@ -3,10 +3,10 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 	"net"
-	"github.com/soyarielruiz/tdl-borbotones-go/tools"
-	"github.com/google/uuid"
 )
 
 type User struct {
@@ -35,10 +35,10 @@ func Send(usr User) {
 			log.Println("Send Close chan")
 			break
 		}
-		action.PlayerId =  usr.PlayerId
+		action.PlayerId = usr.PlayerId
 		log.Printf("Sending action to usr %s", action)
 		encoder.Encode(&action)
-		action.PlayerId =  ""
+		action.PlayerId = ""
 	}
 }
 
