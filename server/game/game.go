@@ -1,11 +1,12 @@
 package game
 
 import (
-	"github.com/soyarielruiz/tdl-borbotones-go/server/commandHandler"
+	//"github.com/soyarielruiz/tdl-borbotones-go/server/commandHandler"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/deck"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/discardPile"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
+	"fmt"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/server/user"
 )
@@ -16,7 +17,7 @@ type Game struct {
 	Deck             deck.Deck
 	DiscardPile      discardPile.DiscardPile
 	RecvChan         chan tools.Action
-	CommandHandler   map[tools.Command]commandHandler.CommandHandler
+	//CommandHandler   map[tools.Command]commandHandler.CommandHandler
 	Ended            bool
 	Started          bool
 	NextUserIdToPlay string
@@ -30,9 +31,9 @@ func NewGame(userChannel chan user.User, gameNumber int) *Game {
 	game.DiscardPile = *discardPile.NewDiscardPile(game.Deck.GetCard())
 	game.Ended = false
 	game.Started = false
-	game.CommandHandler[tools.DROP] = commandHandler.DropHandler{}
+	/*game.CommandHandler[tools.DROP] = commandHandler.DropHandler{}
 	game.CommandHandler[tools.EXIT] = commandHandler.ExitHandler{}
-	game.CommandHandler[tools.TAKE] = commandHandler.TakeHandler{}
+	game.CommandHandler[tools.TAKE] = commandHandler.TakeHandler{}*/
 	return &game
 }
 
@@ -43,12 +44,14 @@ func (game *Game) Run() {
 	game.sendInitialCards()
 	for !game.Ended {
 		action := <-game.RecvChan
-		game.CommandHandler[action.Command].Handle(action, game)
+		fmt.Println(action)
+		//game.CommandHandler[action.Command].Handle(action, game)
 	}
 	game.closeAll()
 }
 
 func (game *Game) recvUsers() {
+	log.Printf("vamos a recibir users en game: %d",game.GameNumber)
 	for {
 		u := <-game.UserChan
 		u.ReceiveChannel = game.RecvChan

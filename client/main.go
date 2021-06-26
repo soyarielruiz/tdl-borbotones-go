@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
+	//"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 )
 
 const (
@@ -22,9 +22,15 @@ const (
 	serverConn    = "tcp"
 )
 
+type LobbyOption struct{
+	Option []int `json:"option"`
+}
+
 func main() {
 
-	g, err := gocui.NewGui(gocui.OutputNormal, true)
+	lobby()
+
+	/*g, err := gocui.NewGui(gocui.OutputNormal, true)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -80,7 +86,7 @@ func main() {
 
 	if err := view.InitKeybindings(g); err != nil {
 		log.Fatalln(err)
-	}
+	}*/
 
 }
 
@@ -90,11 +96,32 @@ func receivingData(g *gocui.Gui, conn *net.TCPConn) {
 	}
 }
 
+func lobby(){
+	conn := startClient()
+	fmt.Println("* * * * * * * *\n")
+	fmt.Println("WELCOME TO GUNO\n")
+	fmt.Println("* * * * * * * *\n")
+	fmt.Println("1:Start new game\n2:Join game\n")
+	//mando que me quiero conectar a una partida (op 2)
+	option :=LobbyOption{[]int{2}}
+	encoder := json.NewEncoder(conn)
+	encoder.Encode(&option)
+	//recibo las partidas disponibles
+	decoder := json.NewDecoder(conn)
+	var games LobbyOption
+	decoder.Decode(&games)
+	fmt.Println("Choose game number:\n")
+	fmt.Println(games)
+	//mando que me quiero conectar a la partida 2
+	option2 :=LobbyOption{[]int{2}}
+	encoder.Encode(&option2)
+}
+
 func startClient() *net.TCPConn {
 
 	serverConnection := serverAddress + ":" + serverPort
 
-	log.Println("Starting " + serverConn + " client on " + serverConnection)
+	log.Println("Starting " + serverConn + " client on " + serverConnection +"\n")
 
 	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
 	checkError(err)
@@ -122,7 +149,7 @@ func createAnAction(messageToSend string) tools.Action {
 	card := getCardFromMessage(words[1], words[2])
 	message := strings.Join(words[3:], " ")
 
-	return tools.Action{command, card, "", message}
+	return tools.Action{command, card, "", message,[] tools.Card{}}
 }
 
 func getCardFromMessage(color string, number string) tools.Card {
