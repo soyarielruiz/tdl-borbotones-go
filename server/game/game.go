@@ -1,9 +1,7 @@
 package game
 
 import (
-	"github.com/soyarielruiz/tdl-borbotones-go/server/commandHandler"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/deck"
-	"github.com/soyarielruiz/tdl-borbotones-go/server/discardPile"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 
@@ -14,9 +12,8 @@ type Game struct {
 	UserChan         <-chan user.User
 	Users            map[string]user.User
 	Deck             deck.Deck
-	DiscardPile      discardPile.DiscardPile
 	RecvChan         chan tools.Action
-	CommandHandler   map[tools.Command]commandHandler.CommandHandler
+	CommandHandler   map[tools.Command]CommandHandler
 	Ended            bool
 	Started          bool
 	NextUserIdToPlay string
@@ -27,12 +24,11 @@ func NewGame(userChannel chan user.User, gameNumber int) *Game {
 	game := Game{UserChan: userChannel, Users: make(map[string]user.User), RecvChan: make(chan tools.Action)}
 	game.GameNumber = gameNumber
 	game.Deck = *deck.NewDeck()
-	game.DiscardPile = *discardPile.NewDiscardPile(game.Deck.GetCardFromDeck())
 	game.Ended = false
 	game.Started = false
-	game.CommandHandler[tools.DROP] = commandHandler.DropHandler{}
-	game.CommandHandler[tools.EXIT] = commandHandler.ExitHandler{}
-	game.CommandHandler[tools.TAKE] = commandHandler.TakeHandler{}
+	game.CommandHandler[tools.DROP] = DropHandler{}
+	game.CommandHandler[tools.EXIT] = ExitHandler{}
+	game.CommandHandler[tools.TAKE] = TakeHandler{}
 	return &game
 }
 
