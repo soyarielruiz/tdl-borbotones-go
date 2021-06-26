@@ -23,7 +23,6 @@ func (u User) String() string {
 func CreateFromConnection(conn net.Conn) User {
 	var usr = User{make(chan tools.Action), make(chan tools.Action), uuid.New().String(), conn}
 	go Send(usr)
-	// go Receive(usr)
 	return usr
 }
 
@@ -38,7 +37,6 @@ func Send(usr User) {
 		action.PlayerId = usr.PlayerId
 		log.Printf("Sending action to usr %s", action)
 		encoder.Encode(&action)
-		action.PlayerId = ""
 	}
 }
 

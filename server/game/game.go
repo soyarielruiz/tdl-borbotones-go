@@ -27,7 +27,7 @@ func NewGame(userChannel chan user.User, gameNumber int) *Game {
 	game := Game{UserChan: userChannel, Users: make(map[string]user.User), RecvChan: make(chan tools.Action)}
 	game.GameNumber = gameNumber
 	game.Deck = *deck.NewDeck()
-	game.DiscardPile = *discardPile.NewDiscardPile(game.Deck.GetCard())
+	game.DiscardPile = *discardPile.NewDiscardPile(game.Deck.GetCardFromDeck())
 	game.Ended = false
 	game.Started = false
 	game.CommandHandler[tools.DROP] = commandHandler.DropHandler{}
@@ -84,6 +84,6 @@ func (game *Game) IsUserTurn(id string) bool {
 
 func (game *Game) sendInitialCards() {
 	for _, u := range game.Users {
-		u.SendChannel <- tools.Action{"", tools.Card{}, u.PlayerId, "", game.Deck.GetCards(3)}
+		u.SendChannel <- tools.Action{"", tools.Card{}, u.PlayerId, "", game.Deck.GetCardsFromDeck(3)}
 	}
 }

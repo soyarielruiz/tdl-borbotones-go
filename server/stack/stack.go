@@ -26,12 +26,12 @@ func (s *Stack) PushAll(e []interface{}) {
 
 func (s *Stack) Pop() (interface{}, bool) {
 	if s.IsEmpty() {
-		return nil, false
+		return nil, true
 	} else {
 		index := len(*s) - 1
 		element := (*s)[index]
 		*s = (*s)[:index]
-		return element, true
+		return element, false
 	}
 }
 
@@ -41,4 +41,14 @@ func (s *Stack) Swap(i int, j int) {
 
 func (s *Stack) Size() int {
 	return len(*s)
+}
+
+func (s *Stack) Front() (interface{}, bool) {
+	if s.IsEmpty() {
+		return nil, true
+	} else {
+		index := len(*s) - 1
+		element := (*s)[index]
+		return element, false
+	}
 }

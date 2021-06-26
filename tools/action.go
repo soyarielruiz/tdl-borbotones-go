@@ -43,6 +43,10 @@ const (
 	BLUE   Suit = "blue"
 )
 
+func Suits() []Suit {
+	return []Suit{GREEN, YELLOW, RED, BLUE}
+}
+
 func CreateFromMessage(playerId, message string) Action {
 	return Action{"", Card{}, playerId, message, []Card{}}
 }
