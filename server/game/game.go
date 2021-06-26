@@ -1,9 +1,7 @@
 package game
 
 import (
-	//"github.com/soyarielruiz/tdl-borbotones-go/server/commandHandler"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/deck"
-	"github.com/soyarielruiz/tdl-borbotones-go/server/discardPile"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 	"fmt"
@@ -12,28 +10,26 @@ import (
 )
 
 type Game struct {
-	UserChan         <-chan user.User
-	Users            map[string]user.User
-	Deck             deck.Deck
-	DiscardPile      discardPile.DiscardPile
-	RecvChan         chan tools.Action
-	//CommandHandler   map[tools.Command]commandHandler.CommandHandler
-	Ended            bool
-	Started          bool
-	NextUserIdToPlay string
-	GameNumber       int
+	UserChan           <-chan user.User
+	Users              map[string]user.User
+	Deck               deck.Deck
+	RecvChan           chan tools.Action
+	CommandHandler     map[tools.Command]CommandHandler
+	Ended              bool
+	Started            bool
+	ActualUserIdToPlay string
+	GameNumber         int
 }
 
 func NewGame(userChannel chan user.User, gameNumber int) *Game {
 	game := Game{UserChan: userChannel, Users: make(map[string]user.User), RecvChan: make(chan tools.Action)}
 	game.GameNumber = gameNumber
 	game.Deck = *deck.NewDeck()
-	game.DiscardPile = *discardPile.NewDiscardPile(game.Deck.GetCard())
 	game.Ended = false
 	game.Started = false
-	/*game.CommandHandler[tools.DROP] = commandHandler.DropHandler{}
-	game.CommandHandler[tools.EXIT] = commandHandler.ExitHandler{}
-	game.CommandHandler[tools.TAKE] = commandHandler.TakeHandler{}*/
+	game.CommandHandler[tools.DROP] = DropHandler{}
+	game.CommandHandler[tools.EXIT] = ExitHandler{}
+	game.CommandHandler[tools.TAKE] = TakeHandler{}
 	return &game
 }
 
@@ -82,11 +78,11 @@ func (game *Game) closeAll() {
 }
 
 func (game *Game) IsUserTurn(id string) bool {
-	return game.NextUserIdToPlay == id
+	return game.ActualUserIdToPlay == id
 }
 
 func (game *Game) sendInitialCards() {
 	for _, u := range game.Users {
-		u.SendChannel <- tools.Action{"", tools.Card{}, u.PlayerId, "", game.Deck.GetCards(3)}
+		u.SendChannel <- tools.Action{"", tools.Card{}, u.PlayerId, "", game.Deck.GetCardsFromDeck(3)}
 	}
 }
