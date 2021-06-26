@@ -23,7 +23,7 @@ type Game struct {
 	GameNumber       int
 }
 
-func newGame(userChannel chan user.User, gameNumber int) *Game {
+func NewGame(userChannel chan user.User, gameNumber int) *Game {
 	game := Game{UserChan: userChannel, Users: make(map[string]user.User), RecvChan: make(chan tools.Action)}
 	game.GameNumber = gameNumber
 	game.Deck = *deck.NewDeck()
@@ -36,17 +36,16 @@ func newGame(userChannel chan user.User, gameNumber int) *Game {
 	return &game
 }
 
-func Run(userChannel chan user.User, gameNumber int) {
-	log.Printf("Initializing game number: %d\n", gameNumber)
-	game := *newGame(userChannel, gameNumber)
+func (game *Game) Run() {
+	log.Printf("Initializing game number: %d\n", game.GameNumber)
 	game.recvUsers()
 	game.Started = true
 	game.sendInitialCards()
 	for !game.Ended {
 		action := <-game.RecvChan
-		game.CommandHandler[action.Command].Handle(action, &game)
+		game.CommandHandler[action.Command].Handle(action, game)
 	}
-	game.closeAll(gameNumber)
+	game.closeAll()
 }
 
 func (game *Game) recvUsers() {
@@ -71,8 +70,8 @@ func (game *Game) sendToAll(a *tools.Action) {
 	}
 }
 
-func (game *Game) closeAll(gn int) {
-	log.Printf("Close All in game %d\n", gn)
+func (game *Game) closeAll() {
+	log.Printf("Close All in game %d\n", game.GameNumber)
 	for _, u := range game.Users {
 		close(u.SendChannel)
 	}

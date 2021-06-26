@@ -23,9 +23,11 @@ func NewDeck() *Deck {
 	deck.shuffle()
 	return &deck;
 }
+
 func (deck *Deck) shuffle() {
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(deck.stack.Size(), func(i, j int) { deck.stack.Swap(i, j) })
+
 }
 
 func (deck *Deck) GetCard() tools.Card {
