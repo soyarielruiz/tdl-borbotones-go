@@ -27,6 +27,7 @@ func NewGame(userChannel chan user.User, gameNumber int) *Game {
 	game.Deck = *deck.NewDeck()
 	game.Ended = false
 	game.Started = false
+	game.CommandHandler = make (map[tools.Command]CommandHandler)
 	game.CommandHandler[tools.DROP] = DropHandler{}
 	game.CommandHandler[tools.EXIT] = ExitHandler{}
 	game.CommandHandler[tools.TAKE] = TakeHandler{}
