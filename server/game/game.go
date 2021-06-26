@@ -9,15 +9,15 @@ import (
 )
 
 type Game struct {
-	UserChan         <-chan user.User
-	Users            map[string]user.User
-	Deck             deck.Deck
-	RecvChan         chan tools.Action
-	CommandHandler   map[tools.Command]CommandHandler
-	Ended            bool
-	Started          bool
-	NextUserIdToPlay string
-	GameNumber       int
+	UserChan           <-chan user.User
+	Users              map[string]user.User
+	Deck               deck.Deck
+	RecvChan           chan tools.Action
+	CommandHandler     map[tools.Command]CommandHandler
+	Ended              bool
+	Started            bool
+	ActualUserIdToPlay string
+	GameNumber         int
 }
 
 func NewGame(userChannel chan user.User, gameNumber int) *Game {
@@ -75,7 +75,7 @@ func (game *Game) closeAll() {
 }
 
 func (game *Game) IsUserTurn(id string) bool {
-	return game.NextUserIdToPlay == id
+	return game.ActualUserIdToPlay == id
 }
 
 func (game *Game) sendInitialCards() {
