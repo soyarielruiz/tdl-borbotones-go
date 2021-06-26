@@ -18,38 +18,35 @@ type Game struct {
 	RecvChan         chan tools.Action
 	CommandHandler   map[tools.Command]commandHandler.CommandHandler
 	Ended            bool
+	Started          bool
 	NextUserIdToPlay string
 	GameNumber       int
 }
 
-func (game *Game) Init() {
-	game.Deck = deck.Deck{}
-	game.Deck.Init()
-	game.DiscardPile = discardPile.DiscardPile{}
-	game.DiscardPile.Init()
+func newGame(userChannel chan user.User, gameNumber int) *Game {
+	game := Game{UserChan: userChannel, Users: make(map[string]user.User), RecvChan: make(chan tools.Action)}
+	game.GameNumber = gameNumber
+	game.Deck = *deck.NewDeck()
+	game.DiscardPile = *discardPile.NewDiscardPile(game.Deck.GetCard())
 	game.Ended = false
+	game.Started = false
 	game.CommandHandler[tools.DROP] = commandHandler.DropHandler{}
 	game.CommandHandler[tools.EXIT] = commandHandler.ExitHandler{}
 	game.CommandHandler[tools.TAKE] = commandHandler.TakeHandler{}
+	return &game
 }
 
 func Run(userChannel chan user.User, gameNumber int) {
 	log.Printf("Initializing game number: %d\n", gameNumber)
-	game := createGame(userChannel, gameNumber)
+	game := *newGame(userChannel, gameNumber)
 	game.recvUsers()
+	game.Started = true
 	game.sendInitialCards()
 	for !game.Ended {
 		action := <-game.RecvChan
 		game.CommandHandler[action.Command].Handle(action, &game)
 	}
 	game.closeAll(gameNumber)
-}
-
-func createGame(userChannel chan user.User, gameNumber int) Game {
-	game := Game{UserChan: userChannel, Users: make(map[string]user.User), RecvChan: make(chan tools.Action)}
-	game.GameNumber = gameNumber
-	game.Init()
-	return game
 }
 
 func (game *Game) recvUsers() {
@@ -63,7 +60,7 @@ func (game *Game) recvUsers() {
 			log.Printf("3 users connect to game %d. Starting game", game.GameNumber)
 			return
 		} else {
-			log.Printf("No enough users connected to game %d for start the game", gameNumber)
+			log.Printf("No enough users connected to game %d for start the game", game.GameNumber)
 		}
 	}
 }
@@ -88,6 +85,6 @@ func (game *Game) IsUserTurn(id string) bool {
 
 func (game *Game) sendInitialCards() {
 	for _, u := range game.Users {
-		u.SendChannel <- tools.Action{"", }
+		u.SendChannel <- tools.Action{"", tools.Card{}, u.PlayerId, "", game.Deck.GetCards(3)}
 	}
 }

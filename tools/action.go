@@ -7,6 +7,7 @@ type Action struct {
 	Card     Card    `json:"card"`
 	PlayerId string  `json:"player_id"`
 	Message  string  `json:"message"`
+	Cards    []Card  `json:"cards"`
 }
 
 func (a Action) String() string {
@@ -43,5 +44,5 @@ const (
 )
 
 func CreateFromMessage(playerId, message string) Action {
-	return Action{"", Card{}, playerId, message}
+	return Action{"", Card{}, playerId, message, []Card{}}
 }
