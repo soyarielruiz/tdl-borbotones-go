@@ -123,7 +123,6 @@ func lobby(conn *net.TCPConn ){
 	fmt.Println("Waiting for new members to start")
 	var start tools.Action
 	decoder.Decode(&start)
-	fmt.Println("Starting game")
 }
 
 func startClient() *net.TCPConn {
@@ -153,7 +152,6 @@ func checkError(err error) {
 
 func createAnAction(messageToSend string) tools.Action {
 	words := strings.Fields(messageToSend)
-
 	command := getCommandFromMessage(words[0])
 	card := getCardFromMessage(words[1], words[2])
 	message := strings.Join(words[3:], " ")

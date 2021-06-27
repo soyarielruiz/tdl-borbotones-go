@@ -42,7 +42,7 @@ func (game *Game) Run() {
 	game.recvUsers()
 	game.Started = true
 	var start tools.Action
-	game.sendToAll(&start)
+	game.SendToAll(&start)
 	game.sendInitialCards()
 	for !game.Ended {
 		action := <-game.RecvChan
