@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/game"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/user"
-	"fmt"
 )
 
 type GamesCollection struct{
