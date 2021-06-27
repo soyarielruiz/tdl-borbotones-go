@@ -23,22 +23,8 @@ func NewCollection() *GamesCollection{
 		                     Games:make(map[int] *game.Game)}
 }
 
-func (collection *GamesCollection) CreateDummyGames(){
-	 users1:=make(chan user.User)
-	 users2:=make(chan user.User)
-	 game1:=game.NewGame(users1,1)
-	 game2:=game.NewGame(users2,2)
-	 collection.GamesChannels[1]=users1
-	 collection.GamesChannels[2]=users2
-	 collection.Games[1]=game1
-	 collection.Games[2]=game2
-	 go game1.Run()
-	 go game2.Run()
-}
-
 func (collection *GamesCollection) CreateNewGame(conn net.Conn){
 	  collection.Game_number=collection.Game_number+1
-	  fmt.Println("creamos nueva partida numero: ", collection.Game_number)
 	  users:=make(chan user.User)
 	  new_game:=game.NewGame(users,collection.Game_number)
 	  collection.Games[collection.Game_number]=new_game
@@ -48,12 +34,12 @@ func (collection *GamesCollection) CreateNewGame(conn net.Conn){
 }
 
 func (collection *GamesCollection) SendExistingGames(conn net.Conn){
-	fmt.Println("sending available games")
 	var games []int
-	for game_id,_ := range collection.Games{
-		games=append(games,game_id)
+	for game_id,game:= range collection.Games{
+		if(!game.Started){
+			games=append(games,game_id)
+		}
 	}
-	fmt.Println(games)
 	encoder := json.NewEncoder(conn)
 	gameOption:=LobbyOption{games}
 	encoder.Encode(&gameOption)
@@ -64,5 +50,12 @@ func (collection GamesCollection) AddUserToGame(conn net.Conn, gameId int){
 	gameChannel <- user.CreateFromConnection(conn)
 }
 
-func (collection GamesCollection) deleteGames(){}
+func (collection GamesCollection) DeleteDeadGames(){
+	for game_id,game := range collection.Games{
+		if game.Ended {
+			delete(collection.Games,game_id)
+			delete(collection.GamesChannels,game_id)
+		}
+	}
+}
 

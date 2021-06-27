@@ -34,7 +34,6 @@ func Start() {
 
 func acceptConnections(listener net.Listener) {
 	collection := gamesCollection.NewCollection()
-	collection.CreateDummyGames()
 	for {
 		client, err := listener.Accept()
 		log.Printf("New connection accepted from %s\n", client.RemoteAddr())
@@ -60,6 +59,7 @@ func lobby(conn net.Conn, collection *gamesCollection.GamesCollection) {
 }
 
 func joinExistingGame(conn net.Conn,collection *gamesCollection.GamesCollection){
+	collection.DeleteDeadGames()
 	collection.SendExistingGames(conn)
 	decoder := json.NewDecoder(conn)
 	var gameNumber LobbyOption
