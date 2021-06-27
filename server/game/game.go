@@ -63,7 +63,7 @@ func (game *Game) recvUsers() {
 	}
 }
 
-func (game *Game) sendToAll(a *tools.Action) {
+func (game *Game) SendToAll(a *tools.Action) {
 	for _, u := range game.Users {
 		u.SendChannel <- *a
 	}
