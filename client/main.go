@@ -22,7 +22,15 @@ const (
 	serverConn    = "tcp"
 )
 
+type LobbyOption struct{
+	Option []int `json:"option"`
+}
+
 func main() {
+	
+	conn := startClient()
+	
+	lobby(conn)
 
 	g, err := gocui.NewGui(gocui.OutputNormal, true)
 	if err != nil {
@@ -34,7 +42,7 @@ func main() {
 	g.Cursor = true
 	g.SelFgColor = gocui.ColorGreen
 
-	conn := startClient()
+	//conn := startClient()
 
 	g.SetManagerFunc(view.Layout)
 
@@ -90,11 +98,39 @@ func receivingData(g *gocui.Gui, conn *net.TCPConn) {
 	}
 }
 
+func lobby(conn *net.TCPConn ){
+	fmt.Println("* * * * * * * * * *\n")
+	fmt.Println("* WELCOME TO GUNO *\n")
+	fmt.Println("* * * * * * * * * *\n")
+	fmt.Println("1:Start new game\n2:Join game\n")
+	var input int
+    fmt.Scanf("%d", &input)
+	option :=LobbyOption{[]int{input}}
+	encoder := json.NewEncoder(conn)
+	encoder.Encode(&option)
+	decoder := json.NewDecoder(conn)
+	if input==2{
+		//recibo las partidas disponibles
+		var games LobbyOption
+		decoder.Decode(&games)
+		fmt.Println("Choose game number:\n")
+		fmt.Println(games)
+		//mando que me quiero conectar a la partida
+		fmt.Scanf("%d", &input)
+		option2 :=LobbyOption{[]int{input}}
+		encoder.Encode(&option2)
+	}
+	fmt.Println("Waiting for new members to start")
+	var start tools.Action
+	decoder.Decode(&start)
+	fmt.Println("Starting game")
+}
+
 func startClient() *net.TCPConn {
 
 	serverConnection := serverAddress + ":" + serverPort
 
-	log.Println("Starting " + serverConn + " client on " + serverConnection)
+	log.Println("Starting " + serverConn + " client on " + serverConnection +"\n")
 
 	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
 	checkError(err)
@@ -122,7 +158,7 @@ func createAnAction(messageToSend string) tools.Action {
 	card := getCardFromMessage(words[1], words[2])
 	message := strings.Join(words[3:], " ")
 
-	return tools.Action{command, card, "", message}
+	return tools.Action{command, card, "", message,[] tools.Card{}}
 }
 
 func getCardFromMessage(color string, number string) tools.Card {

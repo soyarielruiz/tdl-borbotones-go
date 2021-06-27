@@ -1,13 +1,12 @@
 package gameManager
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"os"
+	"encoding/json"
 
-	"github.com/soyarielruiz/tdl-borbotones-go/server/game"
-	"github.com/soyarielruiz/tdl-borbotones-go/server/user"
+	"github.com/soyarielruiz/tdl-borbotones-go/server/gamesCollection"
 )
 
 const (
@@ -15,6 +14,10 @@ const (
 	connPort = "8080"
 	connType = "tcp"
 )
+
+type LobbyOption struct{
+	Option []int `json:"option"`
+}
 
 func Start() {
 	log.Println("Starting " + connType + " server on " + connHost + ":" + connPort)
@@ -30,10 +33,7 @@ func Start() {
 }
 
 func acceptConnections(listener net.Listener) {
-	user_counter := 0
-	game_number := 1
-	users := make(chan user.User)
-	go game.Run(users, game_number)
+	collection := gamesCollection.NewCollection()
 	for {
 		client, err := listener.Accept()
 		log.Printf("New connection accepted from %s\n", client.RemoteAddr())
@@ -41,28 +41,28 @@ func acceptConnections(listener net.Listener) {
 			log.Fatalln("Error connecting:", err.Error())
 			return
 		}
-		if user_counter == 3 {
-			log.Printf("New game started %d", game_number)
-			game_number = game_number + 1
-			users = make(chan user.User)
-			go game.Run(users, game_number)
-			user_counter = 0
-		}
-		go handleConnection(client, users)
-		user_counter = user_counter + 1
+		go lobby (client,collection)
 	}
 }
 
-func handleConnection(conn net.Conn, users chan user.User) {
-	message := []byte("WELCOME TO GUNO\n")
-	_, err := conn.Write(message)
-	checkError(err)
-	users <- user.CreateFromConnection(conn)
+func lobby(conn net.Conn, collection *gamesCollection.GamesCollection) {
+	 decoder := json.NewDecoder(conn)
+	 var gameOption LobbyOption
+	 decoder.Decode(&gameOption)
+	 option:=gameOption.Option[0]
+	 switch option {
+	 case 1 : 
+	 	collection.CreateNewGame(conn)
+	 case 2: 
+	 	joinExistingGame(conn,collection)
+	 }
 }
 
-func checkError(err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
-	}
+func joinExistingGame(conn net.Conn,collection *gamesCollection.GamesCollection){
+	collection.DeleteDeadGames()
+	collection.SendExistingGames(conn)
+	decoder := json.NewDecoder(conn)
+	var gameNumber LobbyOption
+	decoder.Decode(&gameNumber)
+	collection.AddUserToGame(conn,gameNumber.Option[0])
 }

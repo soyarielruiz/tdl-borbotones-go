@@ -16,7 +16,7 @@ func CreateAnAction(messageToSend string) tools.Action {
 	card := getCardFromMessage(words[1], words[2])
 	message := strings.Join(words[3:], " ")
 
-	return tools.Action{command, card, "", message}
+	return tools.Action{command, card, "", message,[] tools.Card{}}
 }
 
 func getCardFromMessage(color string, number string) tools.Card {

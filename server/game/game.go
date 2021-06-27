@@ -4,6 +4,7 @@ import (
 	"github.com/soyarielruiz/tdl-borbotones-go/server/deck"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
+	"fmt"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/server/user"
 )
@@ -26,6 +27,7 @@ func NewGame(userChannel chan user.User, gameNumber int) *Game {
 	game.Deck = *deck.NewDeck()
 	game.Ended = false
 	game.Started = false
+	game.CommandHandler = make (map[tools.Command]CommandHandler)
 	game.CommandHandler[tools.DROP] = DropHandler{}
 	game.CommandHandler[tools.EXIT] = ExitHandler{}
 	game.CommandHandler[tools.TAKE] = TakeHandler{}
@@ -36,9 +38,12 @@ func (game *Game) Run() {
 	log.Printf("Initializing game number: %d\n", game.GameNumber)
 	game.recvUsers()
 	game.Started = true
+	var start tools.Action
+	game.sendToAll(&start)
 	game.sendInitialCards()
 	for !game.Ended {
 		action := <-game.RecvChan
+		fmt.Println(action)
 		game.CommandHandler[action.Command].Handle(action, game)
 	}
 	game.closeAll()
