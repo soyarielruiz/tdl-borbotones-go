@@ -1,9 +1,11 @@
 package game
 
 import (
-	"github.com/soyarielruiz/tdl-borbotones-go/server/deck"
-	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
+
+	"github.com/soyarielruiz/tdl-borbotones-go/server/deck"
+	"github.com/soyarielruiz/tdl-borbotones-go/server/turnero"
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/server/user"
 )
@@ -18,6 +20,7 @@ type Game struct {
 	Started            bool
 	ActualUserIdToPlay string
 	GameNumber         int
+	Turnero            turnero.Turnero
 }
 
 func NewGame(userChannel chan user.User, gameNumber int) *Game {
