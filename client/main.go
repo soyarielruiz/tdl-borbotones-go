@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	//"github.com/soyarielruiz/tdl-borbotones-go/client/view"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 )
 
 const (
@@ -27,10 +27,12 @@ type LobbyOption struct{
 }
 
 func main() {
+	
+	conn := startClient()
+	
+	lobby(conn)
 
-	lobby()
-
-	/*g, err := gocui.NewGui(gocui.OutputNormal, true)
+	g, err := gocui.NewGui(gocui.OutputNormal, true)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -40,7 +42,7 @@ func main() {
 	g.Cursor = true
 	g.SelFgColor = gocui.ColorGreen
 
-	conn := startClient()
+	//conn := startClient()
 
 	g.SetManagerFunc(view.Layout)
 
@@ -86,7 +88,7 @@ func main() {
 
 	if err := view.InitKeybindings(g); err != nil {
 		log.Fatalln(err)
-	}*/
+	}
 
 }
 
@@ -96,25 +98,32 @@ func receivingData(g *gocui.Gui, conn *net.TCPConn) {
 	}
 }
 
-func lobby(){
-	conn := startClient()
-	fmt.Println("* * * * * * * *\n")
-	fmt.Println("WELCOME TO GUNO\n")
-	fmt.Println("* * * * * * * *\n")
+func lobby(conn *net.TCPConn ){
+	fmt.Println("* * * * * * * * * *\n")
+	fmt.Println("* WELCOME TO GUNO *\n")
+	fmt.Println("* * * * * * * * * *\n")
 	fmt.Println("1:Start new game\n2:Join game\n")
-	//mando que me quiero conectar a una partida (op 2)
-	option :=LobbyOption{[]int{2}}
+	var input int
+    fmt.Scanf("%d", &input)
+	option :=LobbyOption{[]int{input}}
 	encoder := json.NewEncoder(conn)
 	encoder.Encode(&option)
-	//recibo las partidas disponibles
 	decoder := json.NewDecoder(conn)
-	var games LobbyOption
-	decoder.Decode(&games)
-	fmt.Println("Choose game number:\n")
-	fmt.Println(games)
-	//mando que me quiero conectar a la partida 2
-	option2 :=LobbyOption{[]int{2}}
-	encoder.Encode(&option2)
+	if input==2{
+		//recibo las partidas disponibles
+		var games LobbyOption
+		decoder.Decode(&games)
+		fmt.Println("Choose game number:\n")
+		fmt.Println(games)
+		//mando que me quiero conectar a la partida
+		fmt.Scanf("%d", &input)
+		option2 :=LobbyOption{[]int{input}}
+		encoder.Encode(&option2)
+	}
+	fmt.Println("Waiting for new members to start")
+	var start tools.Action
+	decoder.Decode(&start)
+	fmt.Println("Starting game")
 }
 
 func startClient() *net.TCPConn {
