@@ -38,17 +38,18 @@ func (game *Game) Run() {
 	log.Printf("Initializing game number: %d\n", game.GameNumber)
 	game.recvUsers()
 	game.Started = true
+	var start tools.Action
+	game.sendToAll(&start)
 	game.sendInitialCards()
 	for !game.Ended {
 		action := <-game.RecvChan
 		fmt.Println(action)
-		//game.CommandHandler[action.Command].Handle(action, game)
+		game.CommandHandler[action.Command].Handle(action, game)
 	}
 	game.closeAll()
 }
 
 func (game *Game) recvUsers() {
-	log.Printf("vamos a recibir users en game: %d",game.GameNumber)
 	for {
 		u := <-game.UserChan
 		u.ReceiveChannel = game.RecvChan
