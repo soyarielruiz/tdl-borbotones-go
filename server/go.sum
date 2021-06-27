@@ -1,4 +1,2 @@
 github.com/google/uuid v1.2.0 h1:qJYtXnJRWmpe7m/3XlyhrsLrEURqHRM2kxzoxXqyUDs=
 github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/soyarielruiz/tdl-borbotones-go/tools v0.0.0-20210622230728-50f2d5c344bf h1:sDnGqqxnC2yoTLRqkbNyGeltbt/qxlQBNKlSoK/U+Ow=
-github.com/soyarielruiz/tdl-borbotones-go/tools v0.0.0-20210622230728-50f2d5c344bf/go.mod h1:v5D7eC0reDmS29Ligoc0R561jHpmtN9UYllboCnMTwg=
