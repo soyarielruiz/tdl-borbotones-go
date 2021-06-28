@@ -46,7 +46,7 @@ func (deck *Deck) GetCardFromDeck() tools.Card {
 func (deck *Deck) GetCardsFromDeck(n int) []tools.Card {
 	result := make([]tools.Card, n)
 	for i := 0; i < n; i++ {
-		result = append(result, deck.GetCardFromDeck())
+		result[i] = deck.GetCardFromDeck()
 	}
 	return result
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/soyarielruiz/tdl-borbotones-go/server/deck"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/turnero"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
-	"fmt"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/server/user"
 )
@@ -30,7 +29,7 @@ func NewGame(userChannel chan user.User, gameNumber int) *Game {
 	game.Deck = *deck.NewDeck()
 	game.Ended = false
 	game.Started = false
-	game.CommandHandler = make (map[tools.Command]CommandHandler)
+	game.CommandHandler = make(map[tools.Command]CommandHandler)
 	game.CommandHandler[tools.DROP] = DropHandler{}
 	game.CommandHandler[tools.EXIT] = ExitHandler{}
 	game.CommandHandler[tools.TAKE] = TakeHandler{}
@@ -46,7 +45,6 @@ func (game *Game) Run() {
 	game.sendInitialCards()
 	for !game.Ended {
 		action := <-game.RecvChan
-		fmt.Println(action)
 		game.CommandHandler[action.Command].Handle(action, game)
 	}
 	game.closeAll()
@@ -88,6 +86,8 @@ func (game *Game) IsUserTurn(id string) bool {
 
 func (game *Game) sendInitialCards() {
 	for _, u := range game.Users {
-		u.SendChannel <- tools.Action{"", tools.Card{}, u.PlayerId, "", game.Deck.GetCardsFromDeck(3)}
+		cardsAction := tools.Action{"", tools.Card{}, u.PlayerId, "", game.Deck.GetCardsFromDeck(3)}
+		log.Printf("Sending initial cards to user %s. game=%d. cards %s", u.PlayerId, game.GameNumber, cardsAction.Cards)
+		u.SendChannel <- cardsAction
 	}
 }
