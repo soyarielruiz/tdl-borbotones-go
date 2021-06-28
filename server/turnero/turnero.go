@@ -81,3 +81,7 @@ func (t *Turnero) Remove(s string) {
 		t.actualIndex = t.usersIndex[cu]
 	}
 }
+
+func (t *Turnero) IsUserTurn(playerId string) bool {
+	return playerId == t.CurrentUser()
+}

@@ -3,10 +3,11 @@ package user
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 	"net"
+
+	"github.com/google/uuid"
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
 
 type User struct {
@@ -45,6 +46,7 @@ func Receive(usr User) {
 	for {
 		var action tools.Action
 		decoder.Decode(&action)
+		action.PlayerId = usr.PlayerId
 		log.Printf("Receive action from usr %s.\n %s", usr, action)
 		usr.ReceiveChannel <- action
 	}

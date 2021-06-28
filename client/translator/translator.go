@@ -3,10 +3,11 @@ package translator
 import (
 	//"errors"
 	"fmt"
-	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
 
 func CreateAnAction(messageToSend string) tools.Action {
@@ -16,7 +17,7 @@ func CreateAnAction(messageToSend string) tools.Action {
 	card := getCardFromMessage(words[1], words[2])
 	message := strings.Join(words[3:], " ")
 
-	return tools.Action{command, card, "", message,[] tools.Card{}}
+	return tools.Action{command, card, "", message, []tools.Card{}}
 }
 
 func getCardFromMessage(color string, number string) tools.Card {
@@ -58,11 +59,11 @@ func TranslateMessageFromServer(action tools.Action) (string, error) {
 	var response string
 	if len(action.Command.String()) > 1 {
 		response = string(action.PlayerId) + " : " + string(action.Command) +
-			" " + string(action.Card.Suit) + " " + string(action.Card.Number)
+			" " + string(action.Card.Suit) + " " + strconv.Itoa(action.Card.Number)
 
 		return response, nil
 	}
-	return "", nil//errors.New("object:Wrong action")
+	return "", nil //errors.New("object:Wrong action")
 }
 
 func checkError(err error) {
