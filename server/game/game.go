@@ -45,7 +45,9 @@ func (game *Game) Run() {
 	game.sendInitialCards()
 	for !game.Ended {
 		action := <-game.RecvChan
-		game.CommandHandler[action.Command].Handle(action, game)
+		if action.Command != "" {
+			game.CommandHandler[action.Command].Handle(action, game)
+		}
 	}
 	game.closeAll()
 }
