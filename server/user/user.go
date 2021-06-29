@@ -16,6 +16,7 @@ type User struct {
 	PlayerId       string
 	conn           net.Conn
 	Closed         bool
+	CardsLeft      int
 }
 
 func (u User) String() string {
@@ -30,7 +31,7 @@ func (u *User) Close() {
 }
 
 func NewUser(conn net.Conn) *User {
-	var usr = User{make(chan tools.Action), make(chan tools.Action), uuid.New().String(), conn, false}
+	var usr = User{make(chan tools.Action), make(chan tools.Action), uuid.New().String(), conn, false, 3}
 	go usr.Send()
 	return &usr
 }
