@@ -35,6 +35,7 @@ const (
 	DROP Command = "drop"
 	TAKE Command = "take"
 	EXIT Command = "exit"
+	GAME_ENDED Command = "game_ended"
 )
 
 const (

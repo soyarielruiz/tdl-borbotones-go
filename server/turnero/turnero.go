@@ -10,10 +10,10 @@ type Turnero struct {
 	actualIndex     int
 	direction       int
 	usersIndex      map[string]int
-	usersCollection []user.User // Ver si usamos punteros aca
+	usersCollection []*user.User // Ver si usamos punteros aca
 }
 
-func New(users map[string]user.User) *Turnero {
+func New(users map[string]*user.User) *Turnero {
 
 	if len(users) < 2 {
 		return nil
@@ -23,7 +23,7 @@ func New(users map[string]user.User) *Turnero {
 	t.actualIndex = 0
 	t.direction = 1
 	t.usersIndex = make(map[string]int)
-	t.usersCollection = make([]user.User, 0)
+	t.usersCollection = make([]*user.User, 0)
 
 	keys := make([]string, 0, len(users))
 	for k := range users {
