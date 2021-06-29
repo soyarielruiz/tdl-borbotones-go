@@ -9,8 +9,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
@@ -58,7 +56,7 @@ func main() {
 
 			encoder := json.NewEncoder(conn)
 			messageToUse := string(iv.Buffer())
-			messageToSend := createAnAction(messageToUse)
+			messageToSend := translator.CreateAnAction(messageToUse)
 
 			err := encoder.Encode(&messageToSend)
 			checkError(err)
@@ -99,21 +97,21 @@ func receivingData(g *gocui.Gui, conn *net.TCPConn) {
 }
 
 func lobby(conn *net.TCPConn ){
-	fmt.Println("* * * * * * * * * *\n")
-	fmt.Println("* WELCOME TO GUNO *\n")
-	fmt.Println("* * * * * * * * * *\n")
-	fmt.Println("1:Start new game\n2:Join game\n")
+	fmt.Println("* * * * * * * * * *")
+	fmt.Println("* WELCOME TO GUNO *")
+	fmt.Println("* * * * * * * * * *")
+	fmt.Println("1:Start new game\n2:Join game")
 	var input int
     fmt.Scanf("%d", &input)
 	option :=LobbyOption{[]int{input}}
 	encoder := json.NewEncoder(conn)
 	encoder.Encode(&option)
 	decoder := json.NewDecoder(conn)
-	if input==2{
+	if input==2 {
 		//recibo las partidas disponibles
 		var games LobbyOption
 		decoder.Decode(&games)
-		fmt.Println("Choose game number:\n")
+		fmt.Println("Choose game number:")
 		fmt.Println(games)
 		//mando que me quiero conectar a la partida
 		fmt.Scanf("%d", &input)
@@ -129,7 +127,7 @@ func startClient() *net.TCPConn {
 
 	serverConnection := serverAddress + ":" + serverPort
 
-	log.Println("Starting " + serverConn + " client on " + serverConnection +"\n")
+	log.Println("Starting " + serverConn + " client on " + serverConnection)
 
 	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
 	checkError(err)
@@ -150,50 +148,6 @@ func checkError(err error) {
 	}
 }
 
-func createAnAction(messageToSend string) tools.Action {
-	words := strings.Fields(messageToSend)
-	command := getCommandFromMessage(words[0])
-	card := getCardFromMessage(words[1], words[2])
-	message := strings.Join(words[3:], " ")
-
-	return tools.Action{command, card, "", message,[] tools.Card{}}
-}
-
-func getCardFromMessage(color string, number string) tools.Card {
-	var colorToUse = tools.GREEN
-	switch strings.ToLower(color) {
-	case string(tools.GREEN):
-		colorToUse = tools.GREEN
-	case string(tools.YELLOW):
-		colorToUse = tools.YELLOW
-	case string(tools.RED):
-		colorToUse = tools.RED
-	case string(tools.BLUE):
-		colorToUse = tools.BLUE
-	default:
-		colorToUse = tools.GREEN
-	}
-
-	value, err := strconv.ParseInt(number, 10, 64)
-	checkError(err)
-
-	return tools.Card{int(value), colorToUse}
-}
-
-func getCommandFromMessage(message string) tools.Command {
-
-	switch strings.ToLower(message) {
-	case string(tools.DROP):
-		return tools.DROP
-	case string(tools.EXIT):
-		return tools.EXIT
-	case string(tools.TAKE):
-		return tools.TAKE
-	default:
-		return tools.DROP
-	}
-}
-
 func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
 	//wait a starting moment
 	time.Sleep(1*time.Second)
@@ -204,7 +158,7 @@ func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
 
 		if len(action.Command.String()) > 1 {
 			out, _ := g.View("mesa")
-			//fmt.Fprintln(out, "message2 : ", action.Command.String())
+
 			message, err := translator.TranslateMessageFromServer(action)
 			if err == nil {
 				fmt.Fprintln(out, message)
