@@ -84,6 +84,5 @@ func InitKeybindings(g *gocui.Gui) error {
 	if err := g.MainLoop(); err != nil && !errors.Is(err, gocui.ErrQuit) {
 		log.Panicln(err)
 	}
-
 	return nil
 }

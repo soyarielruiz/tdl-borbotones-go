@@ -91,8 +91,11 @@ func main() {
 }
 
 func receivingData(g *gocui.Gui, conn *net.TCPConn) {
-	if err := ReceiveMsgFromGame(g, conn); err != nil {
-		log.Fatalln(err)
+	for {
+		time.Sleep(1*time.Second)
+		if err := ReceiveMsgFromGame(g, conn); err != nil {
+			log.Fatalln(err)
+		}
 	}
 }
 
@@ -128,7 +131,7 @@ func initialOption() int {
 	var option int
 	var s string
 	for {
-		fmt.Println("1:Start new game\n2:Join game\n")
+		fmt.Println("1:Start new game\n2:Join game")
 		_, err := fmt.Scan(&s)
         option, err = strconv.Atoi(s)
 		if option!=1 && option!=2 || err!=nil {
@@ -198,10 +201,18 @@ func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
 		decoder := json.NewDecoder(conn)
 		var action tools.Action
 		decoder.Decode(&action)
+		out, _ := g.View("mesa")
+
+		if len(action.Cards) > 0 {
+			hand := translator.DisplayCards(action)
+			_, err := fmt.Fprintf(out, hand)
+			if err != nil {
+				return err
+			}
+			hand = ""
+		}
 
 		if len(action.Command.String()) > 1 {
-			out, _ := g.View("mesa")
-
 			message, err := translator.TranslateMessageFromServer(action)
 			if err == nil {
 				_, err := fmt.Fprintln(out, message)

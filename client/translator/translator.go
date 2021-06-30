@@ -93,3 +93,12 @@ func showTakeAction(playerId string) string {
 func showExitAction(playerId string) string {
 	return fmt.Sprintf("%s ha salido de la partida", playerId)
 }
+
+func DisplayCards(hand tools.Action) string {
+	var handToShow []string
+	for _, card := range hand.Cards {
+		cardToShow := string(card.Suit) + " " + strconv.Itoa(card.Number)
+		handToShow = append(handToShow, cardToShow)
+	}
+	return "Tus cartas son: " + strings.Join(handToShow, ", ")
+}
