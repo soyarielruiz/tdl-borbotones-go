@@ -70,9 +70,6 @@ func TranslateMessageFromServer(action tools.Action) (string, error) {
 			response = ""
 		}
 
-		//response = string(action.PlayerId)[:5] + " : " + actionToShow(action.Command) +
-		//	" " + strings.ToUpper(string(action.Card.Suit)) + " " + strconv.Itoa(action.Card.Number)
-
 		return response, nil
 	}
 	return "", errors.New("object:Wrong action")

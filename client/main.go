@@ -62,16 +62,17 @@ func main() {
 			checkError(err)
 
 			//get cursor position
-			x, y := iv.Cursor()
+			_, y := iv.Cursor()
 
 			//adding a visual enter
-			y = y + 1
-			x = 0
+			w := y + 1
 
-			err = iv.SetCursorUnrestricted(x, y)
+			err = iv.SetCursorUnrestricted(0, w)
 			if err != nil {
 				log.Println("Failed to set cursor:", err)
 			}
+
+			iv.Clear()
 			return err
 		}
 		return nil
