@@ -1,18 +1,18 @@
 package gamesCollection
 
 import (
-	"net"
-	"sync"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/game"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/user"
+	"net"
+	"sync"
 )
 
 type GamesCollection struct{
 	games map[int] *game.Game
 	gameNumber int
-	gamesChannels map[int] chan user.User
+	gamesChannels map[int] chan *user.User
 	mu      sync.Mutex
 }
 
@@ -21,19 +21,19 @@ type LobbyOption struct{
 }
 
 func NewCollection() *GamesCollection{
-	 return &GamesCollection{gameNumber:0,gamesChannels: make(map[int] chan user.User),
+	 return &GamesCollection{gameNumber:0,gamesChannels: make(map[int] chan *user.User),
 		                     games:make(map[int] *game.Game)}
 }
 
 func (collection *GamesCollection) CreateNewGame(conn net.Conn){
 	  fmt.Println("entre a crear nuevo juego")
 	  collection.gameNumber=collection.gameNumber+1
-	  users:=make(chan user.User)
+	  users:=make(chan *user.User)
 	  new_game:=game.NewGame(users,collection.gameNumber)
 	  collection.games[collection.gameNumber]=new_game
 	  collection.gamesChannels[collection.gameNumber]=users
 	  go new_game.Run()
-	  users <- user.CreateFromConnection(conn)
+	  users <- user.NewUser(conn)
 }
 
 func (collection *GamesCollection) SendExistingGames(conn net.Conn) int {
@@ -54,7 +54,7 @@ func (collection *GamesCollection) SendExistingGames(conn net.Conn) int {
 func (collection GamesCollection) AddUserToGame(conn net.Conn, gameId int){
 	collection.mu.Lock()
 	gameChannel:=collection.gamesChannels[gameId]
-	gameChannel <- user.CreateFromConnection(conn)
+	gameChannel <- user.NewUser(conn)
 	collection.mu.Unlock()
 }
 
