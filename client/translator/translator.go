@@ -1,7 +1,7 @@
 package translator
 
 import (
-	//"errors"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -57,13 +57,22 @@ func getCommandFromMessage(message string) tools.Command {
 
 func TranslateMessageFromServer(action tools.Action) (string, error) {
 	var response string
+	//strings.ToUpper(string(action.Command)) +
 	if len(action.Command.String()) > 1 {
-		response = string(action.PlayerId) + " : " + string(action.Command) +
-			" " + string(action.Card.Suit) + " " + strconv.Itoa(action.Card.Number)
+		switch strings.ToLower(string(action.Command)) {
+		case string(tools.DROP):
+			response = showDropAction(string(action.PlayerId)[:5], action.Card)
+		case string(tools.EXIT):
+			response = showExitAction(string(action.PlayerId)[:5])
+		case string(tools.TAKE):
+			response = showTakeAction(string(action.PlayerId)[:5])
+		default:
+			response = ""
+		}
 
 		return response, nil
 	}
-	return "", nil //errors.New("object:Wrong action")
+	return "", errors.New("object:Wrong action")
 }
 
 func checkError(err error) {
@@ -71,4 +80,25 @@ func checkError(err error) {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
 	}
+}
+
+func showDropAction(playerId string, card tools.Card) string {
+	return fmt.Sprintf("%s lanza %s %s", playerId, strings.ToUpper(string(card.Suit)), strconv.Itoa(card.Number))
+}
+
+func showTakeAction(playerId string) string {
+	return fmt.Sprintf("%s toma 1 carta", playerId)
+}
+
+func showExitAction(playerId string) string {
+	return fmt.Sprintf("%s ha salido de la partida", playerId)
+}
+
+func DisplayCards(hand tools.Action) string {
+	var handToShow []string
+	for _, card := range hand.Cards {
+		cardToShow := string(card.Suit) + " " + strconv.Itoa(card.Number)
+		handToShow = append(handToShow, cardToShow)
+	}
+	return "Tus cartas son: " + strings.Join(handToShow, ", ")
 }

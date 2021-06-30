@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 	"net"
@@ -29,7 +30,12 @@ func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
 
 		if len(action.Command.String()) > 1 {
 			out, _ := g.View("mesa")
-			fmt.Fprintln(out, "Action: ", action)
+
+			message, err := translator.TranslateMessageFromServer(action)
+			if err == nil {
+				fmt.Fprintln(out, message)
+				message = ""
+			}
 		}
 	}
 }
@@ -78,6 +84,5 @@ func InitKeybindings(g *gocui.Gui) error {
 	if err := g.MainLoop(); err != nil && !errors.Is(err, gocui.ErrQuit) {
 		log.Panicln(err)
 	}
-
 	return nil
 }
