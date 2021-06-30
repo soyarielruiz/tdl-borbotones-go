@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"encoding/json"
+	"fmt"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/server/gamesCollection"
 )
@@ -48,21 +49,40 @@ func acceptConnections(listener net.Listener) {
 func lobby(conn net.Conn, collection *gamesCollection.GamesCollection) {
 	 decoder := json.NewDecoder(conn)
 	 var gameOption LobbyOption
-	 decoder.Decode(&gameOption)
-	 option:=gameOption.Option[0]
-	 switch option {
-	 case 1 : 
-	 	collection.CreateNewGame(conn)
-	 case 2: 
-	 	joinExistingGame(conn,collection)
-	 }
+	 for{
+		if error:=decoder.Decode(&gameOption); error==nil{
+			option:=gameOption.Option[0]
+			switch option {
+			case 1 : 
+				collection.CreateNewGame(conn)
+			case 2: 
+				success:=joinExistingGame(conn,collection)
+				if success {
+					break 
+				} else {
+					continue 
+				}
+			}
+		}else{
+			conn.Close()
+		}
+		break
+	}
+	fmt.Println("sali del lobby")
 }
 
-func joinExistingGame(conn net.Conn,collection *gamesCollection.GamesCollection){
+func joinExistingGame(conn net.Conn,collection *gamesCollection.GamesCollection) bool{
 	collection.DeleteDeadGames()
-	collection.SendExistingGames(conn)
-	decoder := json.NewDecoder(conn)
-	var gameNumber LobbyOption
-	decoder.Decode(&gameNumber)
-	collection.AddUserToGame(conn,gameNumber.Option[0])
+	games:=collection.SendExistingGames(conn)
+	if games !=0{
+		decoder := json.NewDecoder(conn)
+		var gameNumber LobbyOption
+		if error:=decoder.Decode(&gameNumber); error!=nil{
+			return false
+		}
+		collection.AddUserToGame(conn,gameNumber.Option[0])
+		return true
+	}else{
+		return false
+	}
 }

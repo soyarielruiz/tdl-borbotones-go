@@ -13,7 +13,7 @@ func (t DropHandler) Handle(action tools.Action, game *Game) {
 		game.Tur.Next()
 	} else if action.Card.Number == game.Deck.GetFrontCard().Number {
 		game.Deck.PutCard(action.Card)
-		game.SendToAll(&tools.Action{})
+		game.SendToAll(&action)
 		game.Tur.GoTo(action.PlayerId)
 		game.Tur.Next()
 	} else {
