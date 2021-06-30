@@ -1,16 +1,19 @@
 package gamesCollection
 
 import (
-	"net"
 	"encoding/json"
+	"fmt"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/game"
 	"github.com/soyarielruiz/tdl-borbotones-go/server/user"
+	"net"
+	"sync"
 )
 
 type GamesCollection struct{
-	Games map[int] *game.Game
-	Game_number int
-	GamesChannels map[int] chan user.User
+	games map[int] *game.Game
+	gameNumber int
+	gamesChannels map[int] chan *user.User
+	mu      sync.Mutex
 }
 
 type LobbyOption struct{
@@ -18,23 +21,25 @@ type LobbyOption struct{
 }
 
 func NewCollection() *GamesCollection{
-	 return &GamesCollection{Game_number:0,GamesChannels: make(map[int] chan user.User),
-		                     Games:make(map[int] *game.Game)}
+	 return &GamesCollection{gameNumber:0,gamesChannels: make(map[int] chan *user.User),
+		                     games:make(map[int] *game.Game)}
 }
 
 func (collection *GamesCollection) CreateNewGame(conn net.Conn){
-	  collection.Game_number=collection.Game_number+1
-	  users:=make(chan user.User)
-	  new_game:=game.NewGame(users,collection.Game_number)
-	  collection.Games[collection.Game_number]=new_game
-	  collection.GamesChannels[collection.Game_number]=users
+	  fmt.Println("entre a crear nuevo juego")
+	  collection.gameNumber=collection.gameNumber+1
+	  users:=make(chan *user.User)
+	  new_game:=game.NewGame(users,collection.gameNumber)
+	  collection.games[collection.gameNumber]=new_game
+	  collection.gamesChannels[collection.gameNumber]=users
 	  go new_game.Run()
-	  users <- user.CreateFromConnection(conn)
+	  users <- user.NewUser(conn)
 }
 
-func (collection *GamesCollection) SendExistingGames(conn net.Conn){
+func (collection *GamesCollection) SendExistingGames(conn net.Conn) int {
+	collection.mu.Lock()
 	var games []int
-	for game_id,game:= range collection.Games{
+	for game_id,game:= range collection.games{
 		if(!game.Started){
 			games=append(games,game_id)
 		}
@@ -42,19 +47,25 @@ func (collection *GamesCollection) SendExistingGames(conn net.Conn){
 	encoder := json.NewEncoder(conn)
 	gameOption:=LobbyOption{games}
 	encoder.Encode(&gameOption)
+	defer collection.mu.Unlock()
+	return len(games)
 }
 
 func (collection GamesCollection) AddUserToGame(conn net.Conn, gameId int){
-	gameChannel:=collection.GamesChannels[gameId]
-	gameChannel <- user.CreateFromConnection(conn)
+	collection.mu.Lock()
+	gameChannel:=collection.gamesChannels[gameId]
+	gameChannel <- user.NewUser(conn)
+	collection.mu.Unlock()
 }
 
 func (collection GamesCollection) DeleteDeadGames(){
-	for game_id,game := range collection.Games{
+	collection.mu.Lock()
+	for game_id,game := range collection.games{
 		if game.Ended {
-			delete(collection.Games,game_id)
-			delete(collection.GamesChannels,game_id)
+			delete(collection.games,game_id)
+			delete(collection.gamesChannels,game_id)
 		}
 	}
+	collection.mu.Unlock()
 }
 

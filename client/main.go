@@ -9,6 +9,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
@@ -39,8 +40,6 @@ func main() {
 	g.Highlight = true
 	g.Cursor = true
 	g.SelFgColor = gocui.ColorGreen
-
-	//conn := startClient()
 
 	g.SetManagerFunc(view.Layout)
 
@@ -101,27 +100,70 @@ func lobby(conn *net.TCPConn ){
 	fmt.Println("* * * * * * * * * *")
 	fmt.Println("* WELCOME TO GUNO *")
 	fmt.Println("* * * * * * * * * *")
-	fmt.Println("1:Start new game\n2:Join game")
-	var input int
-    fmt.Scanf("%d", &input)
-	option :=LobbyOption{[]int{input}}
 	encoder := json.NewEncoder(conn)
-	encoder.Encode(&option)
 	decoder := json.NewDecoder(conn)
-	if input==2 {
-		//recibo las partidas disponibles
-		var games LobbyOption
-		decoder.Decode(&games)
-		fmt.Println("Choose game number:")
-		fmt.Println(games)
-		//mando que me quiero conectar a la partida
-		fmt.Scanf("%d", &input)
-		option2 :=LobbyOption{[]int{input}}
-		encoder.Encode(&option2)
+	for {
+		input:=initialOption()
+		option :=LobbyOption{[]int{input}}
+		encoder.Encode(&option)
+		if input==2{
+			var games LobbyOption
+			decoder.Decode(&games)
+			if (len(games.Option)==0){
+				fmt.Println("There are no current games available.")
+				continue
+			}
+			input=gameOption(games)
+			option2 :=LobbyOption{[]int{input}}
+			encoder.Encode(&option2)
+		}
+		break
 	}
 	fmt.Println("Waiting for new members to start")
 	var start tools.Action
 	decoder.Decode(&start)
+}
+
+func initialOption() int {
+	var option int
+	var s string
+	for {
+		fmt.Println("1:Start new game\n2:Join game\n")
+		_, err := fmt.Scan(&s)
+        option, err = strconv.Atoi(s)
+		if option!=1 && option!=2 || err!=nil {
+			fmt.Println("Wrong option. Please type 1 or 2: ")
+		}else{
+			break
+		}
+	}
+	return option
+}
+
+func gameOption(games LobbyOption) int {
+	var option int
+	var s string
+	for {
+		fmt.Println("Choose game number:")
+		fmt.Println(games.Option)
+		_, err := fmt.Scan(&s)
+        option, err = strconv.Atoi(s)
+		if err!=nil || !checkGameId(games,option) {
+			fmt.Println("Wrong option")
+		}else{
+			break
+		}
+	}
+	return option
+}
+
+func checkGameId(games LobbyOption,option int) bool{
+	for _, gameId := range games.Option {
+        if gameId == option {
+            return true
+        }
+    }
+    return false
 }
 
 func startClient() *net.TCPConn {
@@ -162,7 +204,10 @@ func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
 
 			message, err := translator.TranslateMessageFromServer(action)
 			if err == nil {
-				fmt.Fprintln(out, message)
+				_, err := fmt.Fprintln(out, message)
+				if err != nil {
+					return err
+				}
 				message = ""
 			}
 		}

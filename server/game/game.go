@@ -11,8 +11,8 @@ import (
 )
 
 type Game struct {
-	UserChan       <-chan user.User
-	Users          map[string]user.User
+	UserChan       <-chan *user.User
+	Users          map[string]*user.User
 	Deck           deck.Deck
 	RecvChan       chan tools.Action
 	CommandHandler map[tools.Command]CommandHandler
@@ -22,8 +22,8 @@ type Game struct {
 	Tur            turnero.Turnero
 }
 
-func NewGame(userChannel chan user.User, gameNumber int) *Game {
-	game := Game{UserChan: userChannel, Users: make(map[string]user.User), RecvChan: make(chan tools.Action)}
+func NewGame(userChannel chan *user.User, gameNumber int) *Game {
+	game := Game{UserChan: userChannel, Users: make(map[string]*user.User), RecvChan: make(chan tools.Action)}
 	game.GameNumber = gameNumber
 	game.Deck = *deck.NewDeck()
 	game.Ended = false
@@ -49,6 +49,7 @@ func (game *Game) Run() {
 			game.CommandHandler[action.Command].Handle(action, game)
 		}
 	}
+	log.Printf("Game %d ended", game.GameNumber)
 	game.closeAll()
 }
 
@@ -56,7 +57,7 @@ func (game *Game) recvUsers() {
 	for {
 		u := <-game.UserChan
 		u.ReceiveChannel = game.RecvChan
-		go user.Receive(u)
+		go u.Receive()
 		log.Printf("New usr received in game %d. %s", game.GameNumber, u)
 		game.Users[u.PlayerId] = u
 		if len(game.Users) == 3 {
@@ -77,7 +78,7 @@ func (game *Game) SendToAll(a *tools.Action) {
 func (game *Game) closeAll() {
 	log.Printf("Close All in game %d\n", game.GameNumber)
 	for _, u := range game.Users {
-		close(u.SendChannel)
+		u.Close()
 	}
 	close(game.RecvChan)
 }
