@@ -7,23 +7,28 @@ import (
 type DropHandler struct{}
 
 func (t DropHandler) Handle(action tools.Action, game *Game) {
+	frontCard := game.Deck.GetFrontCard()
 	if game.Tur.IsUserTurn(action.PlayerId) {
-		game.Deck.PutCard(action.Card)
-		game.SendToAll(&action)
-		game.Tur.Next()
-		game.Users[action.PlayerId].CardsLeft--
-		if game.Users[action.PlayerId].CardsLeft == 0 {
-			game.Ended = true
-			game.SendToAll(&tools.Action{
-				Command:  tools.GAME_ENDED,
-				Card:     tools.Card{},
-				PlayerId: action.PlayerId,
-				Message:  "Game ended! Player " + action.PlayerId + " won!",
-				Cards:    nil,
-			})
+		if action.Card.Number == frontCard.Number || action.Card.Suit == frontCard.Suit {
+			game.Deck.PutCard(action.Card)
+			game.SendToAll(&action)
+			game.Tur.Next()
+			game.Users[action.PlayerId].CardsLeft--
+			if game.Users[action.PlayerId].CardsLeft == 0 {
+				game.Ended = true
+				game.SendToAll(&tools.Action{
+					Command:  tools.GAME_ENDED,
+					Card:     tools.Card{},
+					PlayerId: action.PlayerId,
+					Message:  "Game ended! Player " + action.PlayerId + " won!",
+					Cards:    nil,
+				})
+			}
+		} else {
+			game.Users[action.PlayerId].SendChannel <- tools.CreateFromMessage(action.PlayerId, "Jugada invalida")
 		}
-
-	} else if action.Card.Number == game.Deck.GetFrontCard().Number {
+	} else if action.Card.Number == frontCard.Number &&
+		action.Card.Suit == frontCard.Suit {
 		game.Deck.PutCard(action.Card)
 		game.SendToAll(&action)
 		game.Tur.GoTo(action.PlayerId)
