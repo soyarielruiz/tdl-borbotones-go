@@ -10,21 +10,21 @@ import (
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
 
-func CreateAnAction(messageToSend string) (interface{}, error) {
+func CreateAnAction(messageToSend string) (tools.Action, error) {
 	words := strings.Fields(messageToSend)
 	action, err := validateCommand(words)
 	return action, err
 }
 
-func validateCommand(words []string) (interface{}, error) {
+func validateCommand(words []string) (tools.Action, error) {
 	if len(words) < 1 {
-		return nil, errors.New("string: Need more parameters")
+		return tools.Action{}, errors.New("string: Need more parameters")
 	}
 
 	action, err := createActionFromCommand(words)
 
 	if err != nil {
-		return nil, err
+		return tools.Action{}, err
 	}
 
 	return action, nil
@@ -51,7 +51,7 @@ func getCardFromMessage(color string, number string) tools.Card {
 	return tools.Card{Number: int(value), Suit: colorToUse}
 }
 
-func createActionFromCommand(words []string) (interface{}, error) {
+func createActionFromCommand(words []string) (tools.Action, error) {
 
 	switch strings.ToLower(words[0]) {
 	case string(tools.DROP):
@@ -63,41 +63,32 @@ func createActionFromCommand(words []string) (interface{}, error) {
 	case string(tools.TAKE):
 		return tools.Action{Command: tools.TAKE}, nil
 	default:
-		return nil, errors.New("string: Command not recognized")
+		return tools.Action{}, errors.New("string: Command not recognized")
 	}
 }
 
-func getCommandFromMessage(message string) tools.Command {
-
-	switch strings.ToLower(message) {
-	case string(tools.DROP):
-		return tools.DROP
-	case string(tools.EXIT):
-		return tools.EXIT
-	case string(tools.TAKE):
-		return tools.TAKE
-	default:
-		return tools.DROP
-	}
-}
-
-func TranslateMessageFromServer(action tools.Action) (string, error) {
+func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 	var response string
+	var out string
 	if len(action.Command.String()) > 1 {
 		switch strings.ToLower(string(action.Command)) {
 		case string(tools.DROP):
-			response = showDropAction(string(action.PlayerId)[:5], action.Card)
+			response = showDropAction(action.PlayerId[:5], action.Card)
+			out = "mesa"
 		case string(tools.EXIT):
-			response = showExitAction(string(action.PlayerId)[:5])
+			response = showExitAction(action.PlayerId[:5])
+			out = "mano"
 		case string(tools.TAKE):
-			response = showTakeAction(string(action.PlayerId)[:5])
+			response = showTakeAction(action.PlayerId[:5])
+			out = "mano"
 		default:
 			response = ""
+			out = ""
 		}
 
-		return response, nil
+		return response, out, nil
 	}
-	return "", errors.New("object:Wrong action")
+	return "", "", errors.New("object:Wrong action")
 }
 
 func checkError(err error) {
@@ -126,4 +117,11 @@ func DisplayCards(hand []tools.Card) string {
 		handToShow = append(handToShow, cardToShow)
 	}
 	return "Tus cartas son: " + strings.Join(handToShow, ", ") + "\n"
+}
+
+func MustLeave(action tools.Action) bool {
+	if tools.EXIT == action.Command {
+		return true
+	}
+	return false
 }

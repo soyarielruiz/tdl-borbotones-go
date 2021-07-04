@@ -11,7 +11,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 )
@@ -63,6 +62,10 @@ func main() {
 				return err
 			}
 
+			if translator.MustLeave(messageToSend) {
+				return view.Quit(g, iv)
+			}
+
 			err = encoder.Encode(&messageToSend)
 			checkError(err)
 
@@ -102,7 +105,6 @@ func main() {
 
 func receivingData(g *gocui.Gui, conn *net.TCPConn) {
 	for {
-		time.Sleep(1 * time.Second)
 		if err := view.ReceiveMsgFromGame(g, conn); err != nil {
 			log.Fatalln(err)
 		}
