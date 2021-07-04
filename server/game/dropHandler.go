@@ -15,7 +15,7 @@ func (t DropHandler) Handle(action tools.Action, game *Game) {
 		if action.Card.Number == frontCard.Number || action.Card.Suit == frontCard.Suit {
 			game.Deck.PutCard(action.Card)
 			game.SendToAll(&action)
-			game.Tur.Next()
+			game.TurnMoveForward()
 			game.Users[action.PlayerId].CardsLeft--
 			if game.Users[action.PlayerId].CardsLeft == 0 {
 				game.Ended = true
@@ -35,7 +35,7 @@ func (t DropHandler) Handle(action tools.Action, game *Game) {
 		game.Deck.PutCard(action.Card)
 		game.SendToAll(&action)
 		game.Tur.GoTo(action.PlayerId)
-		game.Tur.Next()
+		game.TurnMoveForward()
 	} else {
 		game.Users[action.PlayerId].SendChannel <- tools.CreateFromMessage(action.PlayerId, "No es tu turno!")
 	}

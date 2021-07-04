@@ -32,10 +32,11 @@ func (a Command) String() string {
 }
 
 const (
-	DROP Command = "drop"
-	TAKE Command = "take"
-	EXIT Command = "exit"
-	GAME_ENDED Command = "game_ended"
+	DROP          Command = "drop"
+	TAKE          Command = "take"
+	EXIT          Command = "exit"
+	GAME_ENDED    Command = "game_ended"
+	TURN_ASSIGNED Command = "turn_assigned"
 )
 
 const (
