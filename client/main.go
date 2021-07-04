@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
@@ -55,9 +56,13 @@ func main() {
 
 			encoder := json.NewEncoder(conn)
 			messageToUse := string(iv.Buffer())
-			messageToSend := translator.CreateAnAction(messageToUse)
+			messageToSend, err := translator.CreateAnAction(messageToUse)
+			if err != nil {
+				out, _ := g.View("mesa")
+				fmt.Fprintf(out, "Error al crear la accion, probar nuevamente")
+			}
 
-			err := encoder.Encode(&messageToSend)
+			err = encoder.Encode(&messageToSend)
 			checkError(err)
 
 			//get cursor position
@@ -88,12 +93,15 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	if err := g.MainLoop(); err != nil && !errors.Is(err, gocui.ErrQuit) {
+		log.Panicln(err)
+	}
 }
 
 func receivingData(g *gocui.Gui, conn *net.TCPConn) {
 	for {
 		time.Sleep(1*time.Second)
-		if err := ReceiveMsgFromGame(g, conn); err != nil {
+		if err := view.ReceiveMsgFromGame(g, conn); err != nil {
 			log.Fatalln(err)
 		}
 	}
@@ -191,36 +199,5 @@ func checkError(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
-	}
-}
-
-func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
-	//wait a starting moment
-	time.Sleep(1*time.Second)
-	for {
-		decoder := json.NewDecoder(conn)
-		var action tools.Action
-		decoder.Decode(&action)
-		out, _ := g.View("mesa")
-
-		if len(action.Cards) > 0 {
-			hand := translator.DisplayCards(action)
-			_, err := fmt.Fprintf(out, hand)
-			if err != nil {
-				return err
-			}
-			hand = ""
-		}
-
-		if len(action.Command.String()) > 1 {
-			message, err := translator.TranslateMessageFromServer(action)
-			if err == nil {
-				_, err := fmt.Fprintln(out, message)
-				if err != nil {
-					return err
-				}
-				message = ""
-			}
-		}
 	}
 }

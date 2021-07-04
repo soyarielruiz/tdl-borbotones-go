@@ -10,14 +10,22 @@ import (
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
 
-func CreateAnAction(messageToSend string) tools.Action {
+func CreateAnAction(messageToSend string) (interface{}, error) {
 	words := strings.Fields(messageToSend)
+	action, err := validateCommand(words)
+	return action, err
+}
 
+func validateCommand(words []string) (interface{}, error) {
 	command := getCommandFromMessage(words[0])
+	if len(words) < 2 && command != tools.DROP {
+		return nil, errors.New("string: Need more parameters")
+	}
+
 	card := getCardFromMessage(words[1], words[2])
 	message := strings.Join(words[3:], " ")
 
-	return tools.Action{command, card, "", message, []tools.Card{}}
+	return tools.Action{Command: command, Card: card, Message: message, Cards: []tools.Card{}}, nil
 }
 
 func getCardFromMessage(color string, number string) tools.Card {
@@ -38,7 +46,7 @@ func getCardFromMessage(color string, number string) tools.Card {
 	value, err := strconv.ParseInt(number, 10, 64)
 	checkError(err)
 
-	return tools.Card{int(value), colorToUse}
+	return tools.Card{Number: int(value), Suit: colorToUse}
 }
 
 func getCommandFromMessage(message string) tools.Command {
@@ -57,7 +65,6 @@ func getCommandFromMessage(message string) tools.Command {
 
 func TranslateMessageFromServer(action tools.Action) (string, error) {
 	var response string
-	//strings.ToUpper(string(action.Command)) +
 	if len(action.Command.String()) > 1 {
 		switch strings.ToLower(string(action.Command)) {
 		case string(tools.DROP):
@@ -100,5 +107,5 @@ func DisplayCards(hand tools.Action) string {
 		cardToShow := string(card.Suit) + " " + strconv.Itoa(card.Number)
 		handToShow = append(handToShow, cardToShow)
 	}
-	return "Tus cartas son: " + strings.Join(handToShow, ", ")
+	return "Tus cartas son: " + strings.Join(handToShow, ", ") + "\n"
 }

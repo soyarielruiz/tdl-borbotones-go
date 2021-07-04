@@ -3,15 +3,13 @@ package view
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/hand"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 	"net"
 	"time"
 )
-
 
 func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 	if _, err := g.SetCurrentView(name); err != nil {
@@ -20,23 +18,14 @@ func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 	return g.SetViewOnTop(name)
 }
 
-func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
+func ReceiveMsgFromGame(gui *gocui.Gui, conn *net.TCPConn) error {
 	//wait a starting moment
 	time.Sleep(1*time.Second)
 	for {
 		decoder := json.NewDecoder(conn)
 		var action tools.Action
 		decoder.Decode(&action)
-
-		if len(action.Command.String()) > 1 {
-			out, _ := g.View("mesa")
-
-			message, err := translator.TranslateMessageFromServer(action)
-			if err == nil {
-				fmt.Fprintln(out, message)
-				message = ""
-			}
-		}
+		hand.ManageHand(action, gui)
 	}
 }
 
@@ -54,6 +43,15 @@ func Layout(g *gocui.Gui) error {
 		if _, err = setCurrentViewOnTop(g, "jugador"); err != nil {
 			return err
 		}
+	}
+
+	if v, err := g.SetView("mano", 0, maxY/2, maxX-1, maxY-1, 0); err != nil {
+		if !errors.Is(err, gocui.ErrUnknownView) {
+			return err
+		}
+		v.Title = "Mano"
+		v.Wrap = true
+		v.Autoscroll = true
 	}
 
 	if v, err := g.SetView("mesa", maxX/2-1, 0, maxX-1, maxY/2-1, 0); err != nil {
@@ -81,8 +79,5 @@ func InitKeybindings(g *gocui.Gui) error {
 		log.Panicln(err)
 	}
 
-	if err := g.MainLoop(); err != nil && !errors.Is(err, gocui.ErrQuit) {
-		log.Panicln(err)
-	}
 	return nil
 }
