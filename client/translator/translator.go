@@ -17,15 +17,17 @@ func CreateAnAction(messageToSend string) (interface{}, error) {
 }
 
 func validateCommand(words []string) (interface{}, error) {
-	command := getCommandFromMessage(words[0])
-	if len(words) < 2 && command != tools.DROP {
+	if len(words) < 1 {
 		return nil, errors.New("string: Need more parameters")
 	}
 
-	card := getCardFromMessage(words[1], words[2])
-	message := strings.Join(words[3:], " ")
+	action, err := createActionFromCommand(words)
 
-	return tools.Action{Command: command, Card: card, Message: message, Cards: []tools.Card{}}, nil
+	if err != nil {
+		return nil, err
+	}
+
+	return action, nil
 }
 
 func getCardFromMessage(color string, number string) tools.Card {
@@ -47,6 +49,22 @@ func getCardFromMessage(color string, number string) tools.Card {
 	checkError(err)
 
 	return tools.Card{Number: int(value), Suit: colorToUse}
+}
+
+func createActionFromCommand(words []string) (interface{}, error) {
+
+	switch strings.ToLower(words[0]) {
+	case string(tools.DROP):
+		card := getCardFromMessage(words[1], words[2])
+		message := strings.Join(words[3:], " ")
+		return tools.Action{Command: tools.DROP, Card: card, Message: message, Cards: []tools.Card{}}, nil
+	case string(tools.EXIT):
+		return tools.Action{Command: tools.EXIT}, nil
+	case string(tools.TAKE):
+		return tools.Action{Command: tools.TAKE}, nil
+	default:
+		return nil, errors.New("string: Command not recognized")
+	}
 }
 
 func getCommandFromMessage(message string) tools.Command {
@@ -101,9 +119,9 @@ func showExitAction(playerId string) string {
 	return fmt.Sprintf("%s ha salido de la partida", playerId)
 }
 
-func DisplayCards(hand tools.Action) string {
+func DisplayCards(hand []tools.Card) string {
 	var handToShow []string
-	for _, card := range hand.Cards {
+	for _, card := range hand {
 		cardToShow := string(card.Suit) + " " + strconv.Itoa(card.Number)
 		handToShow = append(handToShow, cardToShow)
 	}

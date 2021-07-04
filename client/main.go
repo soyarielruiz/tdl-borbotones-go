@@ -27,9 +27,9 @@ type LobbyOption struct{
 }
 
 func main() {
-	
+
 	conn := startClient()
-	
+
 	lobby(conn)
 
 	g, err := gocui.NewGui(gocui.OutputNormal, true)
@@ -58,8 +58,9 @@ func main() {
 			messageToUse := string(iv.Buffer())
 			messageToSend, err := translator.CreateAnAction(messageToUse)
 			if err != nil {
-				out, _ := g.View("mesa")
+				out, _ := g.View("mano")
 				fmt.Fprintf(out, "Error al crear la accion, probar nuevamente")
+				return err
 			}
 
 			err = encoder.Encode(&messageToSend)
@@ -86,12 +87,13 @@ func main() {
 		log.Println("Cannot bind the enter key:", err)
 	}
 
-	// receiving from server
-	go receivingData(g, conn)
-
 	if err := view.InitKeybindings(g); err != nil {
 		log.Fatalln(err)
 	}
+
+	//partida.IniciarPartida(g, conn)
+	// receiving from server
+	go receivingData(g, conn)
 
 	if err := g.MainLoop(); err != nil && !errors.Is(err, gocui.ErrQuit) {
 		log.Panicln(err)
@@ -100,7 +102,7 @@ func main() {
 
 func receivingData(g *gocui.Gui, conn *net.TCPConn) {
 	for {
-		time.Sleep(1*time.Second)
+		time.Sleep(1 * time.Second)
 		if err := view.ReceiveMsgFromGame(g, conn); err != nil {
 			log.Fatalln(err)
 		}
@@ -141,7 +143,7 @@ func initialOption() int {
 	for {
 		fmt.Println("1:Start new game\n2:Join game")
 		_, err := fmt.Scan(&s)
-        option, err = strconv.Atoi(s)
+		option, err = strconv.Atoi(s)
 		if option!=1 && option!=2 || err!=nil {
 			fmt.Println("Wrong option. Please type 1 or 2: ")
 		}else{
@@ -158,7 +160,7 @@ func gameOption(games LobbyOption) int {
 		fmt.Println("Choose game number:")
 		fmt.Println(games.Option)
 		_, err := fmt.Scan(&s)
-        option, err = strconv.Atoi(s)
+		option, err = strconv.Atoi(s)
 		if err!=nil || !checkGameId(games,option) {
 			fmt.Println("Wrong option")
 		}else{
@@ -170,11 +172,11 @@ func gameOption(games LobbyOption) int {
 
 func checkGameId(games LobbyOption,option int) bool{
 	for _, gameId := range games.Option {
-        if gameId == option {
-            return true
-        }
-    }
-    return false
+		if gameId == option {
+			return true
+		}
+	}
+	return false
 }
 
 func startClient() *net.TCPConn {

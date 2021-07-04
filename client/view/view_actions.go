@@ -25,7 +25,7 @@ func ReceiveMsgFromGame(gui *gocui.Gui, conn *net.TCPConn) error {
 		decoder := json.NewDecoder(conn)
 		var action tools.Action
 		decoder.Decode(&action)
-		hand.ManageHand(action, gui)
+		go gui.Update(hand.ManageHand(action))
 	}
 }
 

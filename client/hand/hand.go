@@ -7,34 +7,44 @@ import (
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
 
-var userCards tools.Action
+var userCards []tools.Card
 
-func ManageHand(action tools.Action, gui *gocui.Gui) error {
+func ManageHand(action tools.Action) func(gui *gocui.Gui) error {
+	return func(gui *gocui.Gui) error {
+		createOrUpdateHand(gui, action.Cards)
 
-	if len(action.Cards) > 0 || len(userCards.Cards) > 0 {
-		out, _ := gui.View("mano")
-		if len(action.Cards) > 0 && len(userCards.Cards) < len(action.Cards) {
-			userCards = action
+		if len(action.Command.String()) > 1 {
+			out, _ := gui.View("mesa")
+			message, err := translator.TranslateMessageFromServer(action)
+			if err == nil {
+				_, err := fmt.Fprintln(out, message)
+				if err != nil {
+					return err
+				}
+				message = ""
+			}
 		}
-		hand := translator.DisplayCards(action)
+		return nil
+	}
+}
+
+func createOrUpdateHand(gui *gocui.Gui, cards []tools.Card) error {
+	if len(cards) > 0 || len(userCards) > 0 {
+		out, _ := gui.View("mano")
+		if len(cards) > 0 && len(userCards) == 0 {
+			userCards = cards
+		}
+
+		if len(userCards) > 0 && len(cards) == 1 {
+			userCards = append(userCards, cards...)
+		}
+
+		hand := translator.DisplayCards(userCards)
 		_, err := fmt.Fprintf(out, hand)
 		if err != nil {
 			return err
 		}
 		hand = ""
 	}
-
-	if len(action.Command.String()) > 1 {
-		out, _ := gui.View("mesa")
-		message, err := translator.TranslateMessageFromServer(action)
-		if err == nil {
-			_, err := fmt.Fprintln(out, message)
-			if err != nil {
-				return err
-			}
-			message = ""
-		}
-	}
-
 	return nil
 }
