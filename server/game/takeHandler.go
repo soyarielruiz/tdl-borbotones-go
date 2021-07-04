@@ -11,6 +11,6 @@ func (t TakeHandler) Handle(action tools.Action, game *Game) {
 		game.Users[action.PlayerId].SendChannel <- tools.CreateFromMessage(action.PlayerId, "It's not your turn!")
 	} else {
 		game.Users[action.PlayerId].CardsLeft++
-		game.Users[action.PlayerId].SendChannel <- tools.Action{"", game.Deck.GetCardFromDeck(), action.PlayerId, "", []tools.Card{}}
+		game.Users[action.PlayerId].SendChannel <- tools.Action{Command: tools.TAKE, Card: game.Deck.GetCardFromDeck(), PlayerId: action.PlayerId, Cards: []tools.Card{}}
 	}
 }
