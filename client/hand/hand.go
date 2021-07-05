@@ -1,30 +1,19 @@
 package hand
 
 import (
+	"errors"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
 var userCards []tools.Card
 
-func ManageHand(action tools.Action) func(gui *gocui.Gui) error {
-	return func(gui *gocui.Gui) error {
-		err := createOrUpdateHand(gui, action)
-		if err != nil {
-			return err
-		}
-		err = showFromServer(gui, action)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-}
-
-func createOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
+func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 	time.Sleep(1 * time.Second)
 	if len(action.Cards) > 0 || len(userCards) > 0 {
 		out, _ := gui.View("mano")
@@ -37,7 +26,7 @@ func createOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 			userCards = append(userCards, action.Card)
 		}
 
-		hand := translator.DisplayCards(userCards)
+		hand := displayCards(userCards)
 		_, err := fmt.Fprintf(out, hand)
 		if err != nil {
 			return err
@@ -47,17 +36,79 @@ func createOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 	return nil
 }
 
-func showFromServer(gui *gocui.Gui, action tools.Action) error {
-	if len(action.Command.String()) > 1 {
-		message, viewToUse, err := translator.TranslateMessageFromServer(action)
-		if err == nil {
-			out, _ := gui.View(viewToUse)
-			_, err := fmt.Fprintln(out, message)
-			if err != nil {
-				return err
-			}
-			message = ""
+func displayCards(hand []tools.Card) string {
+	var handToShow []string
+	for _, card := range hand {
+		cardToShow := string(card.Suit) + " " + strconv.Itoa(card.Number)
+		handToShow = append(handToShow, cardToShow)
+	}
+	return "Tus cartas son: " + strings.Join(handToShow, ", ") + "\n"
+}
+
+func DropACard(words []string) (tools.Action, error) {
+	card := getCardFromMessage(words[1], words[2])
+	_, err := itsAPlayingCard(card)
+	if err != nil {
+		return tools.Action{}, err
+	}
+	message := strings.Join(words[3:], " ")
+	return tools.Action{Command: tools.DROP, Card: card, Message: message, Cards: []tools.Card{}}, nil
+}
+
+func itsAPlayingCard(cardSent tools.Card) (interface{}, error) {
+	existingPosition := -1
+	for i, card := range userCards {
+		if cardSent.Suit == card.Suit && cardSent.Number == card.Number {
+			existingPosition = i
 		}
 	}
+
+	if existingPosition == -1 {
+		return false, errors.New("card: No posees esa carta en tu mano")
+	}
+
+	userCards = append(userCards[:existingPosition], userCards[existingPosition+1:]...)
+	return true, nil
+}
+
+func getCardFromMessage(color string, number string) tools.Card {
+	var colorToUse = tools.GREEN
+	switch strings.ToLower(color) {
+	case string(tools.GREEN):
+		colorToUse = tools.GREEN
+	case string(tools.YELLOW):
+		colorToUse = tools.YELLOW
+	case string(tools.RED):
+		colorToUse = tools.RED
+	case string(tools.BLUE):
+		colorToUse = tools.BLUE
+	default:
+		colorToUse = tools.GREEN
+	}
+
+	value, err := strconv.ParseInt(number, 10, 64)
+	checkError(err)
+
+	return tools.Card{Number: int(value), Suit: colorToUse}
+}
+
+func ShowHand(gui *gocui.Gui) (error) {
+	out, _ := gui.View("mano")
+
+	if len(userCards) > 0 {
+		hand := displayCards(userCards)
+		_, err := fmt.Fprintf(out, hand)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func checkError(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		os.Exit(1)
+	}
 }

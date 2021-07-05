@@ -53,21 +53,22 @@ func main() {
 		// Send message if text was entered.
 		if len(iv.Buffer()) >= 2 {
 
-			encoder := json.NewEncoder(conn)
 			messageToUse := string(iv.Buffer())
-			messageToSend, err := translator.CreateAnAction(messageToUse)
+			messageToSend, err := translator.CreateAnAction(messageToUse, g)
 			if err != nil {
 				out, _ := g.View("mano")
-				fmt.Fprintf(out, "Error al crear la accion, probar nuevamente")
-				return err
+				fmt.Fprintf(out, "Error al crear la accion, probar nuevamente \n")
 			}
 
 			if translator.MustLeave(messageToSend) {
 				return view.Quit(g, iv)
 			}
 
-			err = encoder.Encode(&messageToSend)
-			checkError(err)
+			if translator.HaveActionToSend(messageToSend) {
+				encoder := json.NewEncoder(conn)
+				err = encoder.Encode(&messageToSend)
+				checkError(err)
+			}
 
 			//get cursor position
 			_, y := iv.Cursor()
