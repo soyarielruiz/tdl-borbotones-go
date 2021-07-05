@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/hand"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 	"net"
@@ -25,7 +25,7 @@ func ReceiveMsgFromGame(gui *gocui.Gui, conn *net.TCPConn) error {
 		decoder := json.NewDecoder(conn)
 		var action tools.Action
 		decoder.Decode(&action)
-		go gui.Update(hand.ManageHand(action))
+		go gui.Update(translator.ManageHand(action))
 	}
 }
 
