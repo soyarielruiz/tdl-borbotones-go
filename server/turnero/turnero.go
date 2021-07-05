@@ -43,10 +43,6 @@ func (t *Turnero) CurrentUser() string {
 	return t.usersCollection[t.actualIndex].PlayerId
 }
 
-func (t *Turnero) nextUser() string {
-	return t.usersCollection[t.actualIndex+1].PlayerId
-}
-
 func (t *Turnero) Next() {
 	t.actualIndex += t.direction
 	if t.direction == 1 && t.actualIndex == len(t.usersCollection) {
