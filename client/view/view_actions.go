@@ -8,6 +8,8 @@ import (
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 	"net"
+	"fmt"
+	"os"
 	"time"
 )
 
@@ -21,10 +23,15 @@ func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 func ReceiveMsgFromGame(gui *gocui.Gui, conn *net.TCPConn) error {
 	//wait a starting moment
 	time.Sleep(1*time.Second)
+	decoder := json.NewDecoder(conn)
 	for {
-		decoder := json.NewDecoder(conn)
 		var action tools.Action
-		decoder.Decode(&action)
+		fmt.Fprintf(os.Stderr, "voy a recibir accion\n")
+		err:=decoder.Decode(&action)
+		if err !=nil{
+			fmt.Fprintf(os.Stderr, "error en decode : %s\n", err)
+		}
+		fmt.Fprintf(os.Stderr, "action recibida: %s\n", action)
 		go gui.Update(translator.ManageHand(action))
 	}
 }

@@ -138,6 +138,7 @@ func lobby(conn *net.TCPConn ){
 	fmt.Println("Waiting for new members to start")
 	var start tools.Action
 	decoder.Decode(&start)
+	fmt.Fprintf(os.Stderr, "recibi accion: %s \n", start)
 }
 
 func initialOption() int {
