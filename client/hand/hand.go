@@ -17,9 +17,12 @@ func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 	time.Sleep(1 * time.Second)
 	if len(action.Cards) > 0 || len(userCards) > 0 {
 		out, _ := gui.View("mano")
+		var initCard tools.Card
 
 		if len(action.Cards) > 0 && action.Command == "" {
 			userCards = action.Cards
+			initCard=action.Card
+			displayInitialCard(gui,initCard)
 		}
 
 		if action.Command == tools.TAKE && action.Card.Suit != "" {
@@ -42,7 +45,13 @@ func displayCards(hand []tools.Card) string {
 		cardToShow := string(card.Suit) + " " + strconv.Itoa(card.Number)
 		handToShow = append(handToShow, cardToShow)
 	}
-	return "Tus cartas son: " + strings.Join(handToShow, ", ") + "\n"
+	return "Your cards are: " + strings.Join(handToShow, ", ") + "\n"
+}
+
+func displayInitialCard(gui *gocui.Gui, initCard tools.Card){
+	initialCard:=string(initCard.Suit) + " " + strconv.Itoa(initCard.Number)
+	out, _ := gui.View("mesa")
+	fmt.Fprintf(out,"Initial card: " +initialCard + "\n")
 }
 
 func DropACard(words []string) (tools.Action, error) {
