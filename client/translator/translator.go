@@ -53,7 +53,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 	var out string
 
 	if string(action.Command) == string(tools.TURN_ASSIGNED) {
-		response = showTurnAssigned(action.PlayerId[:5], action.Card)
+		response = showTurnAssigned(action.PlayerId[:5])
 		out = "mano"
 		return response, out, nil
 	}
@@ -97,12 +97,8 @@ func showTakeAction(playerId string) string {
 	return fmt.Sprintf("%s toma 1 carta", playerId)
 }
 
-func showTurnAssigned(playerId string, card tools.Card) string {
-	return fmt.Sprintf(
-		"%s es tu turno, carta en el pozo %s %s",
-		playerId,
-		string(card.Suit),
-		strconv.Itoa(card.Number))
+func showTurnAssigned(playerId string) string {
+	return fmt.Sprintf("%s It's your turn! Drop one of your cards or take one",playerId)
 }
 
 func showExitAction(playerId string) string {
