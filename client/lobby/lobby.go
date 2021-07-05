@@ -22,6 +22,7 @@ type Lobby struct {
 	Conn    *net.TCPConn
 	Encoder *json.Encoder
 	Decoder *json.Decoder
+	Games   []int
 }
 
 type LobbyOption struct {
@@ -70,17 +71,24 @@ func (l *Lobby) Keybindings(g *gocui.Gui) error {
 
 func (l *Lobby) keyHandler(ch rune) func(g *gocui.Gui, v *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
-		lo := LobbyOption{[]int{int(ch - 48)}}
-		l.Encoder.Encode(lo)
-		if v, err := g.SetView("selgame", 27+1, 1+1, 52+1, 3+1, gocui.TOP); err != nil {
-			if err != gocui.ErrUnknownView {
+		key := int(ch - 48)
+		if 0 < key && key <= len(l.Games) {
+			lo := LobbyOption{[]int{key}}
+			l.Encoder.Encode(lo)
+			if err := g.DeleteView("gamelist"); err != nil {
 				return err
 			}
-			g.SetCurrentView(v.Name())
-			v.Title = "Esperando jugadores"
-			fmt.Fprintln(v, ch)
+			if v, err := g.SetView("wait", 27, 1, 52, 4, gocui.TOP); err != nil {
+				if err != gocui.ErrUnknownView {
+					return err
+				}
+				g.SetCurrentView(v.Name())
+				v.Title = "Esperando jugadores"
+				fmt.Fprintln(v, "F3 - Atras")
+				fmt.Fprintf(v, "Opcion seleccionada %d\n", key)
+			}
+			go l.waitPlayer()
 		}
-		go l.waitPlayer()
 		return nil
 	}
 }
@@ -128,13 +136,14 @@ func (l *Lobby) Home(g *gocui.Gui, v *gocui.View) error {
 func (l *Lobby) NewGame(g *gocui.Gui, v *gocui.View) error {
 	lo := LobbyOption{[]int{1}}
 	l.Encoder.Encode(lo)
-	if v, err := g.SetView("wait", 27, 1, 52, 3, gocui.TOP); err != nil {
+	if v, err := g.SetView("wait", 27, 1, 52, 4, gocui.TOP); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 		g.SetCurrentView(v.Name())
 		v.Title = "Esperando jugadores"
 		fmt.Fprintln(v, "F3 - Atras")
+		fmt.Fprintln(v, "Nueva Partida")
 	}
 	go l.waitPlayer()
 	return nil
@@ -153,6 +162,7 @@ func (l *Lobby) FindGame(g *gocui.Gui, v *gocui.View) error {
 		v.Title = "Lista de Partidas"
 		fmt.Fprintln(v, "F3 - Atras")
 		fmt.Fprintln(v, "-----------------------")
+		l.Games = lo.Option
 		for i, game := range lo.Option {
 			fmt.Fprintln(v, strconv.Itoa(i+1)+" - Partida "+strconv.Itoa(game))
 		}
