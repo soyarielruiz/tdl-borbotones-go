@@ -83,6 +83,17 @@ func (game *Game) closeAll() {
 	close(game.RecvChan)
 }
 
+func (game *Game) TurnMoveForward() {
+	game.Tur.Next()
+	game.Users[game.Tur.CurrentUser()].SendChannel <- tools.Action{
+		Command:  tools.TURN_ASSIGNED,
+		Card:     game.Deck.GetFrontCard(),
+		PlayerId: game.Tur.CurrentUser(),
+		Message:  "It's your turn to play!",
+		Cards:    nil,
+	}
+}
+
 func (game *Game) sendInitialCards() {
 	for _, u := range game.Users {
 		cardsAction := tools.Action{"", tools.Card{}, u.PlayerId, "", game.Deck.GetCardsFromDeck(3)}
