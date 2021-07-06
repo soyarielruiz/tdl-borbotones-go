@@ -29,7 +29,11 @@ func ReceiveMsgFromGame(gui *gocui.Gui, conn *net.TCPConn) error {
 		//fmt.Fprintf(os.Stderr, "voy a recibir accion\n")
 		err:=decoder.Decode(&action)
 		if err !=nil{
-			fmt.Fprintf(os.Stderr, "error en decode : %s\n", err)
+			fmt.Fprintf(os.Stderr, "Error en decode : %s\n", err)
+			if "EOF" == err.Error() {
+				fmt.Fprintf(os.Stderr, "Fatal error in conection: %s ", err.Error())
+				os.Exit(1)
+			}
 		}
 		//fmt.Fprintf(os.Stderr, "action recibida: %s\n", action)
 		go gui.Update(translator.ManageHand(action))
