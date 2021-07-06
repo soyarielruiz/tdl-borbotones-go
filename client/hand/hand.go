@@ -17,25 +17,21 @@ func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 	time.Sleep(1 * time.Second)
 	if len(action.Cards) > 0 || len(userCards) > 0 {
 		out, _ := gui.View("mano")
-		//var initCard tools.Card
 
 		if len(action.Cards) > 0 && action.Command == "" {
 			userCards = action.Cards
-			//initCard=action.Card
-			hand := displayCards(userCards)
-			fmt.Fprintf(out, hand)
-		} else {
-			if action.Command == tools.TAKE && action.Card.Suit != "" {
-				userCards = append(userCards, action.Card)
-			}
-
-			hand := displayCards(userCards)
-			_, err := fmt.Fprintf(out, hand)
-			if err != nil {
-				return err
-			}
-			hand = ""
 		}
+
+		if action.Command == tools.TAKE && action.Card.Suit != "" {
+			userCards = append(userCards, action.Card)
+		}
+
+		hand := displayCards(userCards)
+		_, err := fmt.Fprintf(out, hand)
+		if err != nil {
+			return err
+		}
+		hand = ""
 	}
 	return nil
 }
@@ -47,12 +43,6 @@ func displayCards(hand []tools.Card) string {
 		handToShow = append(handToShow, cardToShow)
 	}
 	return "Your cards are: " + strings.Join(handToShow, ", ") + "\n"
-}
-
-func displayInitialCard(gui *gocui.Gui, initCard tools.Card){
-	initialCard:=string(initCard.Suit) + " " + strconv.Itoa(initCard.Number)
-	out, _ := gui.View("mesa")
-	fmt.Fprintf(out,"Initial card: " +initialCard + "\n")
 }
 
 func DropACard(words []string) (tools.Action, error) {

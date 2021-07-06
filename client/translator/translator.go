@@ -125,13 +125,7 @@ func ManageHand(action tools.Action) func(gui *gocui.Gui) error {
 		if err != nil {
 			return err
 		}
-		return nil
-	}
-}
-
-func ReceiveFromServer(action tools.Action) func(gui *gocui.Gui) error {
-	return func(gui *gocui.Gui) error {
-		err := showFromServer(gui, action)
+		err = showFromServer(gui, action)
 		if err != nil {
 			return err
 		}
