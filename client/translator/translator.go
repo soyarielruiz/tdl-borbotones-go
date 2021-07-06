@@ -35,15 +35,47 @@ func createActionFromCommand(words []string, gui *gocui.Gui) (tools.Action, erro
 
 	switch strings.ToLower(words[0]) {
 	case string(tools.DROP):
-		return hand.DropACard(words)
+		return checkDropCommand(words)
 	case string(tools.EXIT):
-		return tools.Action{Command: tools.EXIT}, nil
+		return checkExitCommand(words)
 	case string(tools.TAKE):
-		return tools.Action{Command: tools.TAKE}, nil
+		return checkTakeCommand(words)
 	case "list":
-		return tools.Action{}, hand.ShowHand(gui)
+		return checkListCommand(words,gui)
 	default:
 		return tools.Action{}, errors.New("string: Command not recognized")
+	}
+}
+
+func checkDropCommand(words []string) (tools.Action, error){
+	if len(words)>3{
+		return hand.DropACard(words)
+	}else{
+		return tools.Action{},errors.New("string: Command not recognized")
+	}
+}
+
+func checkTakeCommand(words []string) (tools.Action, error){
+	if len(words)==1{
+		return tools.Action{Command: tools.TAKE}, nil
+	}else{
+		return tools.Action{},errors.New("string: Command not recognized")
+	}
+}
+
+func checkExitCommand(words []string) (tools.Action, error){
+	if len(words)==1{
+		return tools.Action{Command: tools.EXIT}, nil
+	}else{
+		return tools.Action{},errors.New("string: Command not recognized")
+	}
+}
+
+func checkListCommand(words []string,gui *gocui.Gui) (tools.Action, error){
+	if len(words)==1{
+		return tools.Action{}, hand.ShowHand(gui)
+	}else{
+		return tools.Action{},errors.New("string: Command not recognized")
 	}
 }
 
@@ -82,11 +114,11 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 }
 
 func showDropAction(playerId string, card tools.Card) string {
-	return fmt.Sprintf("%s lanza %s %s", playerId, strings.ToUpper(string(card.Suit)), strconv.Itoa(card.Number))
+	return fmt.Sprintf("%s throws %s %s", playerId, strings.ToUpper(string(card.Suit)), strconv.Itoa(card.Number))
 }
 
 func showTakeAction(playerId string) string {
-	return fmt.Sprintf("%s toma 1 carta", playerId)
+	return fmt.Sprintf("%s takes 1 card", playerId)
 }
 
 func showTurnAssigned(playerId string) string {
@@ -94,7 +126,7 @@ func showTurnAssigned(playerId string) string {
 }
 
 func showExitAction(playerId string) string {
-	return fmt.Sprintf("%s ha salido de la partida", playerId)
+	return fmt.Sprintf("%s has left the room", playerId)
 }
 
 func MustLeave(action tools.Action) bool {
