@@ -1,15 +1,12 @@
 package view
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/awesome-gocui/gocui"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/game"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
-	"net"
-	"fmt"
-	"os"
 	"time"
 )
 
@@ -20,13 +17,12 @@ func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 	return g.SetViewOnTop(name)
 }
 
-func ReceiveMsgFromGame(gui *gocui.Gui, conn *net.TCPConn) error {
+func ReceiveMsgFromGame(gui *gocui.Gui, game *game.Game) error {
 	//wait a starting moment
 	time.Sleep(1*time.Second)
-	decoder := json.NewDecoder(conn)
 	for {
 		var action tools.Action
-		err:=decoder.Decode(&action)
+		err:=game.Decoder.Decode(&action)
 		if err !=nil{
 			fmt.Fprintf(os.Stderr, "Error en decode : %s\n", err)
 			if "EOF" == err.Error() {

@@ -1,23 +1,16 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/game"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
-	"net"
 	"os"
 	"strconv"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
-)
-
-const (
-	serverAddress = "127.0.0.1"
-	serverPort    = "8080"
-	serverConn    = "tcp"
 )
 
 type LobbyOption struct{
@@ -26,9 +19,7 @@ type LobbyOption struct{
 
 func main() {
 
-	conn := startClient()
-
-	lobby(conn)
+	game:=lobby()
 
 	g, err := gocui.NewGui(gocui.OutputNormal, true)
 	if err != nil {
@@ -70,8 +61,7 @@ func main() {
 			}
 
 			if translator.HaveActionToSend(messageToSend) {
-				encoder := json.NewEncoder(conn)
-				err = encoder.Encode(&messageToSend)
+				err = game.Encoder.Encode(&messageToSend)
 				checkError(err)
 			}
 
@@ -101,48 +91,47 @@ func main() {
 	}
 
 	// receiving from server
-	go receivingData(g, conn)
+	go receivingData(g,game)
 
 	if err := g.MainLoop(); err != nil && !errors.Is(err, gocui.ErrQuit) {
 		log.Panicln(err)
 	}
 }
 
-func receivingData(g *gocui.Gui, conn *net.TCPConn) {
+func receivingData(g *gocui.Gui, game *game.Game) {
 	for {
-		if err := view.ReceiveMsgFromGame(g, conn); err != nil {
+		if err := view.ReceiveMsgFromGame(g, game); err != nil {
 			log.Fatalln(err)
 		}
 	}
 }
 
-func lobby(conn *net.TCPConn ){
+func lobby() *game.Game {
+	game:=game.NewGame()
 	fmt.Println("* * * * * * * * * *")
 	fmt.Println("* WELCOME TO GUNO *")
 	fmt.Println("* * * * * * * * * *")
-	encoder := json.NewEncoder(conn)
-	decoder := json.NewDecoder(conn)
 	for {
 		input:=initialOption()
 		option :=LobbyOption{[]int{input}}
-		encoder.Encode(&option)
+		game.Encoder.Encode(&option)
 		if input==2{
 			var games LobbyOption
-			decoder.Decode(&games)
-			if len(games.Option)==0 {
+			game.Decoder.Decode(&games)
+			if (len(games.Option)==0){
 				fmt.Println("There are no current games available.")
 				continue
 			}
 			input=gameOption(games)
 			option2 :=LobbyOption{[]int{input}}
-			encoder.Encode(&option2)
+			game.Encoder.Encode(&option2)
 		}
 		break
 	}
 	fmt.Println("Waiting for new members to start")
 	var start tools.Action
-	decoder.Decode(&start)
-	fmt.Fprintf(os.Stderr, "recibi accion: %s \n", start)
+	game.Decoder.Decode(&start)
+	return game
 }
 
 func initialOption() int {
@@ -185,24 +174,6 @@ func checkGameId(games LobbyOption,option int) bool{
 		}
 	}
 	return false
-}
-
-func startClient() *net.TCPConn {
-
-	serverConnection := serverAddress + ":" + serverPort
-
-	log.Println("Starting " + serverConn + " client on " + serverConnection)
-
-	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
-	checkError(err)
-
-	conn, err := net.DialTCP("tcp", nil, tcpAddr)
-	checkError(err)
-
-	err = conn.SetWriteBuffer(10)
-	checkError(err)
-
-	return conn
 }
 
 func checkError(err error) {

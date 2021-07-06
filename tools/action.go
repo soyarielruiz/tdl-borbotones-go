@@ -11,8 +11,9 @@ type Action struct {
 }
 
 func (a Action) String() string {
-	return fmt.Sprintf("Command:\"%s\"; Card:{Number:%d, Suit: %s}; PlayerId:\"%s\"; Message:\"%s\";Cards :%s", a.Command,
-		a.Card.Number, a.Card.Suit, a.PlayerId, a.Message, a.Cards)
+	/*return fmt.Sprintf("Command:\"%s\"; Card:{Number:%d, Suit: %s}; PlayerId:\"%s\"; Message:\"%s\";Cards :%s", a.Command,
+		a.Card.Number, a.Card.Suit, a.PlayerId, a.Message, a.Cards)*/
+	return fmt.Sprintf("PlayerId:\"%s\"; Message:\"%s\";Cards :%s",a.PlayerId, a.Message, a.Cards)
 }
 
 type Command string
