@@ -1,24 +1,16 @@
 package main
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/game"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
-	"net"
 	"os"
 	"strconv"
-	"time"
-
 	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
-)
-
-const (
-	serverAddress = "127.0.0.1"
-	serverPort    = "8080"
-	serverConn    = "tcp"
 )
 
 type LobbyOption struct{
@@ -26,10 +18,8 @@ type LobbyOption struct{
 }
 
 func main() {
-	
-	conn := startClient()
-	
-	lobby(conn)
+
+	game:=lobby()
 
 	g, err := gocui.NewGui(gocui.OutputNormal, true)
 	if err != nil {
@@ -53,12 +43,27 @@ func main() {
 		// Send message if text was entered.
 		if len(iv.Buffer()) >= 2 {
 
-			encoder := json.NewEncoder(conn)
 			messageToUse := string(iv.Buffer())
-			messageToSend := translator.CreateAnAction(messageToUse)
+			messageToSend, err := translator.CreateAnAction(messageToUse, g)
+			if err != nil {
+				out, _ := g.View("mano")
+				fmt.Fprintf(out, "Invalid command.Try again!\n")
+			}
 
-			err := encoder.Encode(&messageToSend)
-			checkError(err)
+			if translator.MustLeave(messageToSend) {
+				return view.Quit(g, iv)
+			}
+
+			if translator.GameWasEnded(messageToSend) {
+				out, _ := g.View("mano")
+				fmt.Fprintf(out, "Juego Finalizado \n")
+				return nil
+			}
+
+			if translator.HaveActionToSend(messageToSend) {
+				err = game.Encoder.Encode(&messageToSend)
+				checkError(err)
+			}
 
 			//get cursor position
 			_, y := iv.Cursor()
@@ -81,50 +86,52 @@ func main() {
 		log.Println("Cannot bind the enter key:", err)
 	}
 
-	// receiving from server
-	go receivingData(g, conn)
-
 	if err := view.InitKeybindings(g); err != nil {
 		log.Fatalln(err)
 	}
 
+	// receiving from server
+	go receivingData(g,game)
+
+	if err := g.MainLoop(); err != nil && !errors.Is(err, gocui.ErrQuit) {
+		log.Panicln(err)
+	}
 }
 
-func receivingData(g *gocui.Gui, conn *net.TCPConn) {
+func receivingData(g *gocui.Gui, game *game.Game) {
 	for {
-		time.Sleep(1*time.Second)
-		if err := ReceiveMsgFromGame(g, conn); err != nil {
+		if err := view.ReceiveMsgFromGame(g, game); err != nil {
 			log.Fatalln(err)
 		}
 	}
 }
 
-func lobby(conn *net.TCPConn ){
+func lobby() *game.Game {
+	game:=game.NewGame()
 	fmt.Println("* * * * * * * * * *")
 	fmt.Println("* WELCOME TO GUNO *")
 	fmt.Println("* * * * * * * * * *")
-	encoder := json.NewEncoder(conn)
-	decoder := json.NewDecoder(conn)
 	for {
 		input:=initialOption()
 		option :=LobbyOption{[]int{input}}
-		encoder.Encode(&option)
+		game.Encoder.Encode(&option)
 		if input==2{
 			var games LobbyOption
-			decoder.Decode(&games)
+			game.Decoder.Decode(&games)
 			if (len(games.Option)==0){
 				fmt.Println("There are no current games available.")
 				continue
 			}
 			input=gameOption(games)
 			option2 :=LobbyOption{[]int{input}}
-			encoder.Encode(&option2)
+			game.Encoder.Encode(&option2)
 		}
 		break
 	}
 	fmt.Println("Waiting for new members to start")
 	var start tools.Action
-	decoder.Decode(&start)
+	game.Decoder.Decode(&start)
+	return game
 }
 
 func initialOption() int {
@@ -133,7 +140,7 @@ func initialOption() int {
 	for {
 		fmt.Println("1:Start new game\n2:Join game")
 		_, err := fmt.Scan(&s)
-        option, err = strconv.Atoi(s)
+		option, err = strconv.Atoi(s)
 		if option!=1 && option!=2 || err!=nil {
 			fmt.Println("Wrong option. Please type 1 or 2: ")
 		}else{
@@ -150,7 +157,7 @@ func gameOption(games LobbyOption) int {
 		fmt.Println("Choose game number:")
 		fmt.Println(games.Option)
 		_, err := fmt.Scan(&s)
-        option, err = strconv.Atoi(s)
+		option, err = strconv.Atoi(s)
 		if err!=nil || !checkGameId(games,option) {
 			fmt.Println("Wrong option")
 		}else{
@@ -162,65 +169,16 @@ func gameOption(games LobbyOption) int {
 
 func checkGameId(games LobbyOption,option int) bool{
 	for _, gameId := range games.Option {
-        if gameId == option {
-            return true
-        }
-    }
-    return false
-}
-
-func startClient() *net.TCPConn {
-
-	serverConnection := serverAddress + ":" + serverPort
-
-	log.Println("Starting " + serverConn + " client on " + serverConnection)
-
-	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
-	checkError(err)
-
-	conn, err := net.DialTCP("tcp", nil, tcpAddr)
-	checkError(err)
-
-	err = conn.SetWriteBuffer(10)
-	checkError(err)
-
-	return conn
+		if gameId == option {
+			return true
+		}
+	}
+	return false
 }
 
 func checkError(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
-	}
-}
-
-func ReceiveMsgFromGame(g *gocui.Gui, conn *net.TCPConn) error {
-	//wait a starting moment
-	time.Sleep(1*time.Second)
-	for {
-		decoder := json.NewDecoder(conn)
-		var action tools.Action
-		decoder.Decode(&action)
-		out, _ := g.View("mesa")
-
-		if len(action.Cards) > 0 {
-			hand := translator.DisplayCards(action)
-			_, err := fmt.Fprintf(out, hand)
-			if err != nil {
-				return err
-			}
-			hand = ""
-		}
-
-		if len(action.Command.String()) > 1 {
-			message, err := translator.TranslateMessageFromServer(action)
-			if err == nil {
-				_, err := fmt.Fprintln(out, message)
-				if err != nil {
-					return err
-				}
-				message = ""
-			}
-		}
 	}
 }

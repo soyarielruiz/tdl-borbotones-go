@@ -3,102 +3,178 @@ package translator
 import (
 	"errors"
 	"fmt"
-	"os"
+	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/hand"
 	"strconv"
 	"strings"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
 
-func CreateAnAction(messageToSend string) tools.Action {
+func CreateAnAction(messageToSend string, gui *gocui.Gui) (tools.Action, error) {
 	words := strings.Fields(messageToSend)
-
-	command := getCommandFromMessage(words[0])
-	card := getCardFromMessage(words[1], words[2])
-	message := strings.Join(words[3:], " ")
-
-	return tools.Action{command, card, "", message, []tools.Card{}}
+	action, err := validateCommand(words, gui)
+	return action, err
 }
 
-func getCardFromMessage(color string, number string) tools.Card {
-	var colorToUse = tools.GREEN
-	switch strings.ToLower(color) {
-	case string(tools.GREEN):
-		colorToUse = tools.GREEN
-	case string(tools.YELLOW):
-		colorToUse = tools.YELLOW
-	case string(tools.RED):
-		colorToUse = tools.RED
-	case string(tools.BLUE):
-		colorToUse = tools.BLUE
-	default:
-		colorToUse = tools.GREEN
+func validateCommand(words []string, gui *gocui.Gui) (tools.Action, error) {
+	if len(words) < 1 {
+		return tools.Action{}, errors.New("string: Need more parameters")
 	}
 
-	value, err := strconv.ParseInt(number, 10, 64)
-	checkError(err)
+	action, err := createActionFromCommand(words, gui)
 
-	return tools.Card{int(value), colorToUse}
+	if err != nil {
+		return tools.Action{}, err
+	}
+
+	return action, nil
 }
 
-func getCommandFromMessage(message string) tools.Command {
+func createActionFromCommand(words []string, gui *gocui.Gui) (tools.Action, error) {
 
-	switch strings.ToLower(message) {
+	switch strings.ToLower(words[0]) {
 	case string(tools.DROP):
-		return tools.DROP
+		return checkDropCommand(words)
 	case string(tools.EXIT):
-		return tools.EXIT
+		return checkExitCommand(words)
 	case string(tools.TAKE):
-		return tools.TAKE
+		return checkTakeCommand(words)
+	case "list":
+		return checkListCommand(words,gui)
 	default:
-		return tools.DROP
+		return tools.Action{}, errors.New("string: Command not recognized")
 	}
 }
 
-func TranslateMessageFromServer(action tools.Action) (string, error) {
+func checkDropCommand(words []string) (tools.Action, error){
+	if len(words)>3{
+		return hand.DropACard(words)
+	}else{
+		return tools.Action{},errors.New("string: Command not recognized")
+	}
+}
+
+func checkTakeCommand(words []string) (tools.Action, error){
+	if len(words)==1{
+		return tools.Action{Command: tools.TAKE}, nil
+	}else{
+		return tools.Action{},errors.New("string: Command not recognized")
+	}
+}
+
+func checkExitCommand(words []string) (tools.Action, error){
+	if len(words)==1{
+		return tools.Action{Command: tools.EXIT}, nil
+	}else{
+		return tools.Action{},errors.New("string: Command not recognized")
+	}
+}
+
+func checkListCommand(words []string,gui *gocui.Gui) (tools.Action, error){
+	if len(words)==1{
+		return tools.Action{}, hand.ShowHand(gui)
+	}else{
+		return tools.Action{},errors.New("string: Command not recognized")
+	}
+}
+
+func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 	var response string
-	//strings.ToUpper(string(action.Command)) +
+	var out string
+
+	if string(action.Command) == string(tools.TURN_ASSIGNED) {
+		response = showTurnAssigned(action.PlayerId[:5])
+		out = "mano"
+		return response, out, nil
+	}
+
 	if len(action.Command.String()) > 1 {
 		switch strings.ToLower(string(action.Command)) {
 		case string(tools.DROP):
-			response = showDropAction(string(action.PlayerId)[:5], action.Card)
+			response = showDropAction(action.PlayerId[:5], action.Card)
+			out = "mesa"
 		case string(tools.EXIT):
-			response = showExitAction(string(action.PlayerId)[:5])
+			response = showExitAction(action.PlayerId[:5])
+			out = "mano"
 		case string(tools.TAKE):
-			response = showTakeAction(string(action.PlayerId)[:5])
+			response = showTakeAction(action.PlayerId[:5])
+			out = "mano"
+		case string(tools.GAME_ENDED):
+			response = "Game Finalizado"
+			out = "mano"
 		default:
 			response = ""
+			out = ""
 		}
 
-		return response, nil
+		return response, out, nil
 	}
-	return "", errors.New("object:Wrong action")
-}
-
-func checkError(err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
-	}
+	return "", "", errors.New("object:Wrong action")
 }
 
 func showDropAction(playerId string, card tools.Card) string {
-	return fmt.Sprintf("%s lanza %s %s", playerId, strings.ToUpper(string(card.Suit)), strconv.Itoa(card.Number))
+	return fmt.Sprintf("%s throws %s %s", playerId, strings.ToUpper(string(card.Suit)), strconv.Itoa(card.Number))
 }
 
 func showTakeAction(playerId string) string {
-	return fmt.Sprintf("%s toma 1 carta", playerId)
+	return fmt.Sprintf("%s takes 1 card", playerId)
+}
+
+func showTurnAssigned(playerId string) string {
+	return fmt.Sprintf("%s It's your turn! Drop one of your cards or take one",playerId)
 }
 
 func showExitAction(playerId string) string {
-	return fmt.Sprintf("%s ha salido de la partida", playerId)
+	return fmt.Sprintf("%s has left the room", playerId)
 }
 
-func DisplayCards(hand tools.Action) string {
-	var handToShow []string
-	for _, card := range hand.Cards {
-		cardToShow := string(card.Suit) + " " + strconv.Itoa(card.Number)
-		handToShow = append(handToShow, cardToShow)
+func MustLeave(action tools.Action) bool {
+	if tools.EXIT == action.Command {
+		return true
 	}
-	return "Tus cartas son: " + strings.Join(handToShow, ", ")
+	return false
+}
+
+func GameWasEnded(action tools.Action) bool {
+	if tools.GAME_ENDED == action.Command {
+		return true
+	}
+	return false
+}
+
+func ManageHand(action tools.Action) func(gui *gocui.Gui) error {
+	return func(gui *gocui.Gui) error {
+		err := hand.CreateOrUpdateHand(gui, action)
+		if err != nil {
+			return err
+		}
+		err = showFromServer(gui, action)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
+func showFromServer(gui *gocui.Gui, action tools.Action) error {
+	if len(action.Command) > 1 {
+		message, viewToUse, err := TranslateMessageFromServer(action)
+		if err == nil {
+			out, _ := gui.View(viewToUse)
+			_, err := fmt.Fprintln(out, message)
+			if err != nil {
+				return err
+			}
+			message = ""
+		}
+	}
+	return nil
+}
+
+func HaveActionToSend(action tools.Action) bool {
+	if action.Command != "" || len(action.Command) > 0 {
+		return true
+	}
+	return false
 }

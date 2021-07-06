@@ -1,7 +1,9 @@
 package game
 
 import (
+	"fmt"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
+	"strconv"
 )
 
 type DropHandler struct{}
@@ -9,10 +11,11 @@ type DropHandler struct{}
 func (t DropHandler) Handle(action tools.Action, game *Game) {
 	frontCard := game.Deck.GetFrontCard()
 	if game.Tur.IsUserTurn(action.PlayerId) {
+		game.Users[action.PlayerId].SendChannel <- tools.CreateFromMessage(action.PlayerId, fmt.Sprintf("CARTA EN MESA %s %s", strconv.Itoa(frontCard.Number), frontCard.Suit))
 		if action.Card.Number == frontCard.Number || action.Card.Suit == frontCard.Suit {
 			game.Deck.PutCard(action.Card)
 			game.SendToAll(&action)
-			game.Tur.Next()
+			game.TurnMoveForward()
 			game.Users[action.PlayerId].CardsLeft--
 			if game.Users[action.PlayerId].CardsLeft == 0 {
 				game.Ended = true
@@ -32,7 +35,7 @@ func (t DropHandler) Handle(action tools.Action, game *Game) {
 		game.Deck.PutCard(action.Card)
 		game.SendToAll(&action)
 		game.Tur.GoTo(action.PlayerId)
-		game.Tur.Next()
+		game.TurnMoveForward()
 	} else {
 		game.Users[action.PlayerId].SendChannel <- tools.CreateFromMessage(action.PlayerId, "No es tu turno!")
 	}
