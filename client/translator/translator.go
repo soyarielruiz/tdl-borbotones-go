@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/awesome-gocui/gocui"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/hand"
-	"os"
 	"strconv"
 	"strings"
 
@@ -53,7 +52,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 	var out string
 
 	if string(action.Command) == string(tools.TURN_ASSIGNED) {
-		response = showTurnAssigned(action.PlayerId[:5], action.Card)
+		response = showTurnAssigned(action.PlayerId[:5])
 		out = "mano"
 		return response, out, nil
 	}
@@ -82,13 +81,6 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 	return "", "", errors.New("object:Wrong action")
 }
 
-func checkError(err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
-	}
-}
-
 func showDropAction(playerId string, card tools.Card) string {
 	return fmt.Sprintf("%s lanza %s %s", playerId, strings.ToUpper(string(card.Suit)), strconv.Itoa(card.Number))
 }
@@ -97,12 +89,8 @@ func showTakeAction(playerId string) string {
 	return fmt.Sprintf("%s toma 1 carta", playerId)
 }
 
-func showTurnAssigned(playerId string, card tools.Card) string {
-	return fmt.Sprintf(
-		"%s es tu turno, carta en el pozo %s %s",
-		playerId,
-		string(card.Suit),
-		strconv.Itoa(card.Number))
+func showTurnAssigned(playerId string) string {
+	return fmt.Sprintf("%s It's your turn! Drop one of your cards or take one",playerId)
 }
 
 func showExitAction(playerId string) string {
@@ -111,6 +99,13 @@ func showExitAction(playerId string) string {
 
 func MustLeave(action tools.Action) bool {
 	if tools.EXIT == action.Command {
+		return true
+	}
+	return false
+}
+
+func GameWasEnded(action tools.Action) bool {
+	if tools.GAME_ENDED == action.Command {
 		return true
 	}
 	return false

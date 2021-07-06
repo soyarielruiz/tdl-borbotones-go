@@ -1,8 +1,19 @@
 # Trabajo practico en Go
 
-**Para lanzar la consola hacer**
+Proyecto de GO en el cual consiste en jugar al UNO con arquitectura cliente-servidor.
+Se debe levantar primero el servidor para poder conectar los clientes, el limite para
+cada partida es de 3 clientes, en donde uno inicializa la partida y luego los demás 
+clientes deben conectarse a la partida que desee entre una lista que se mostrará en
+el lobby.
 
-    go run src/app.go
+
+**Para lanzar el server ingresar al directorio server y lanzar**
+
+    go run server.go
+
+**Para lanzar el cliente ingresar al directorio client y lanzar**
+
+    go run client.go
 
 **Si hubiese algún package sin instalar se debe lanzar (ver si se requieren permisos)**
 
