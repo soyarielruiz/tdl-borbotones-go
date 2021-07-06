@@ -112,13 +112,26 @@ func MustLeave(action tools.Action) bool {
 	return false
 }
 
+func GameWasEnded(action tools.Action) bool {
+	if tools.GAME_ENDED == action.Command {
+		return true
+	}
+	return false
+}
+
 func ManageHand(action tools.Action) func(gui *gocui.Gui) error {
 	return func(gui *gocui.Gui) error {
 		err := hand.CreateOrUpdateHand(gui, action)
 		if err != nil {
 			return err
 		}
-		err = showFromServer(gui, action)
+		return nil
+	}
+}
+
+func ReceiveFromServer(action tools.Action) func(gui *gocui.Gui) error {
+	return func(gui *gocui.Gui) error {
+		err := showFromServer(gui, action)
 		if err != nil {
 			return err
 		}

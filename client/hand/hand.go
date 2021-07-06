@@ -17,24 +17,25 @@ func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 	time.Sleep(1 * time.Second)
 	if len(action.Cards) > 0 || len(userCards) > 0 {
 		out, _ := gui.View("mano")
-		var initCard tools.Card
+		//var initCard tools.Card
 
 		if len(action.Cards) > 0 && action.Command == "" {
 			userCards = action.Cards
-			initCard=action.Card
-			displayInitialCard(gui,initCard)
-		}
+			//initCard=action.Card
+			hand := displayCards(userCards)
+			fmt.Fprintf(out, hand)
+		} else {
+			if action.Command == tools.TAKE && action.Card.Suit != "" {
+				userCards = append(userCards, action.Card)
+			}
 
-		if action.Command == tools.TAKE && action.Card.Suit != "" {
-			userCards = append(userCards, action.Card)
+			hand := displayCards(userCards)
+			_, err := fmt.Fprintf(out, hand)
+			if err != nil {
+				return err
+			}
+			hand = ""
 		}
-
-		hand := displayCards(userCards)
-		_, err := fmt.Fprintf(out, hand)
-		if err != nil {
-			return err
-		}
-		hand = ""
 	}
 	return nil
 }

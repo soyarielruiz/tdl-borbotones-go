@@ -64,6 +64,12 @@ func main() {
 				return view.Quit(g, iv)
 			}
 
+			if translator.GameWasEnded(messageToSend) {
+				out, _ := g.View("mano")
+				fmt.Fprintf(out, "Juego Finalizado \n")
+				return nil
+			}
+
 			if translator.HaveActionToSend(messageToSend) {
 				encoder := json.NewEncoder(conn)
 				err = encoder.Encode(&messageToSend)

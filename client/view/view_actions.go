@@ -26,13 +26,14 @@ func ReceiveMsgFromGame(gui *gocui.Gui, conn *net.TCPConn) error {
 	decoder := json.NewDecoder(conn)
 	for {
 		var action tools.Action
-		fmt.Fprintf(os.Stderr, "voy a recibir accion\n")
+		//fmt.Fprintf(os.Stderr, "voy a recibir accion\n")
 		err:=decoder.Decode(&action)
 		if err !=nil{
 			fmt.Fprintf(os.Stderr, "error en decode : %s\n", err)
 		}
-		fmt.Fprintf(os.Stderr, "action recibida: %s\n", action)
+		//fmt.Fprintf(os.Stderr, "action recibida: %s\n", action)
 		go gui.Update(translator.ManageHand(action))
+		go gui.Update(translator.ReceiveFromServer(action))
 	}
 }
 
