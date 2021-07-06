@@ -11,7 +11,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-
 	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 )
 
@@ -101,7 +100,6 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	//partida.IniciarPartida(g, conn)
 	// receiving from server
 	go receivingData(g, conn)
 
@@ -131,7 +129,7 @@ func lobby(conn *net.TCPConn ){
 		if input==2{
 			var games LobbyOption
 			decoder.Decode(&games)
-			if (len(games.Option)==0){
+			if len(games.Option)==0 {
 				fmt.Println("There are no current games available.")
 				continue
 			}
