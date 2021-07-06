@@ -20,6 +20,7 @@ func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 
 		if len(action.Cards) > 0 && action.Command == "" {
 			userCards = action.Cards
+			displayInitialCard(gui,action.Card)
 		}
 
 		if action.Command == tools.TAKE && action.Card.Suit != "" {
@@ -34,6 +35,12 @@ func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 		hand = ""
 	}
 	return nil
+}
+
+func displayInitialCard(gui *gocui.Gui, card tools.Card) {
+	out, _ := gui.View("mesa")
+	cardToShow := string(card.Suit) + " " + strconv.Itoa(card.Number)
+	fmt.Fprintf(out, "Initial card: " + cardToShow + "\n")
 }
 
 func displayCards(hand []tools.Card) string {

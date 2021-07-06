@@ -8,6 +8,8 @@ import (
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 	"time"
+	"fmt"
+	"os"
 )
 
 func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
