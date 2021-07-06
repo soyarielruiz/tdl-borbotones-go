@@ -47,7 +47,7 @@ func main() {
 			messageToSend, err := translator.CreateAnAction(messageToUse, g)
 			if err != nil {
 				out, _ := g.View("mano")
-				fmt.Fprintf(out, "Error al crear la accion, probar nuevamente \n")
+				fmt.Fprintf(out, "Invalid command.Try again!\n")
 			}
 
 			if translator.MustLeave(messageToSend) {

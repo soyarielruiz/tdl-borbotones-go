@@ -55,6 +55,7 @@ func displayCards(hand []tools.Card) string {
 func DropACard(words []string) (tools.Action, error) {
 	card := getCardFromMessage(words[1], words[2])
 	_, err := itsAPlayingCard(card)
+
 	if err != nil {
 		return tools.Action{}, err
 	}
@@ -78,7 +79,7 @@ func itsAPlayingCard(cardSent tools.Card) (interface{}, error) {
 	return true, nil
 }
 
-func getCardFromMessage(color string, number string) tools.Card {
+func getCardFromMessage(color string, number string) tools.Card{
 	var colorToUse = tools.GREEN
 	switch strings.ToLower(color) {
 	case string(tools.GREEN):
@@ -90,11 +91,13 @@ func getCardFromMessage(color string, number string) tools.Card {
 	case string(tools.BLUE):
 		colorToUse = tools.BLUE
 	default:
-		colorToUse = tools.GREEN
+		colorToUse = ""
 	}
 
 	value, err := strconv.ParseInt(number, 10, 64)
-	checkError(err)
+	if err!=nil || colorToUse == ""{
+		return tools.Card{}
+	}
 
 	return tools.Card{Number: int(value), Suit: colorToUse}
 }
