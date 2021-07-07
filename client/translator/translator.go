@@ -41,41 +41,41 @@ func createActionFromCommand(words []string, gui *gocui.Gui) (tools.Action, erro
 	case string(tools.TAKE):
 		return checkTakeCommand(words)
 	case "list":
-		return checkListCommand(words,gui)
+		return checkListCommand(words, gui)
 	default:
+		return tools.Action{}, errors.New("string: Command not recognized e:" + words[0])
+	}
+}
+
+func checkDropCommand(words []string) (tools.Action, error) {
+	if len(words) > 2 {
+		return hand.DropACard(words)
+	} else {
 		return tools.Action{}, errors.New("string: Command not recognized")
 	}
 }
 
-func checkDropCommand(words []string) (tools.Action, error){
-	if len(words)>3{
-		return hand.DropACard(words)
-	}else{
-		return tools.Action{},errors.New("string: Command not recognized")
-	}
-}
-
-func checkTakeCommand(words []string) (tools.Action, error){
-	if len(words)==1{
+func checkTakeCommand(words []string) (tools.Action, error) {
+	if len(words) == 1 {
 		return tools.Action{Command: tools.TAKE}, nil
-	}else{
-		return tools.Action{},errors.New("string: Command not recognized")
+	} else {
+		return tools.Action{}, errors.New("string: Command not recognized")
 	}
 }
 
-func checkExitCommand(words []string) (tools.Action, error){
-	if len(words)==1{
+func checkExitCommand(words []string) (tools.Action, error) {
+	if len(words) == 1 {
 		return tools.Action{Command: tools.EXIT}, nil
-	}else{
-		return tools.Action{},errors.New("string: Command not recognized")
+	} else {
+		return tools.Action{}, errors.New("string: Command not recognized")
 	}
 }
 
-func checkListCommand(words []string,gui *gocui.Gui) (tools.Action, error){
-	if len(words)==1{
+func checkListCommand(words []string, gui *gocui.Gui) (tools.Action, error) {
+	if len(words) == 1 {
 		return tools.Action{}, hand.ShowHand(gui)
-	}else{
-		return tools.Action{},errors.New("string: Command not recognized")
+	} else {
+		return tools.Action{}, errors.New("string: Command not recognized")
 	}
 }
 
@@ -84,7 +84,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 	var out string
 
 	if string(action.Command) == string(tools.TURN_ASSIGNED) {
-		response = showTurnAssigned(action.PlayerId[:5])
+		response = showTurnAssigned(action.PlayerId)
 		out = "mano"
 		return response, out, nil
 	}
@@ -92,13 +92,13 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 	if len(action.Command.String()) > 1 {
 		switch strings.ToLower(string(action.Command)) {
 		case string(tools.DROP):
-			response = showDropAction(action.PlayerId[:5], action.Card)
+			response = showDropAction(action.PlayerId, action.Card)
 			out = "mesa"
 		case string(tools.EXIT):
-			response = showExitAction(action.PlayerId[:5])
+			response = showExitAction(action.PlayerId)
 			out = "mano"
 		case string(tools.TAKE):
-			response = showTakeAction(action.PlayerId[:5])
+			response = showTakeAction(action.PlayerId)
 			out = "mano"
 		case string(tools.GAME_ENDED):
 			response = "Game Finalizado"
@@ -114,7 +114,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 }
 
 func showDropAction(playerId string, card tools.Card) string {
-	return fmt.Sprintf("%s throws %s %s", playerId, strings.ToUpper(string(card.Suit)), strconv.Itoa(card.Number))
+	return fmt.Sprintf("%s throws %s %s", playerId, strings.ToLower(string(card.Suit)), strconv.Itoa(card.Number))
 }
 
 func showTakeAction(playerId string) string {
@@ -122,7 +122,7 @@ func showTakeAction(playerId string) string {
 }
 
 func showTurnAssigned(playerId string) string {
-	return fmt.Sprintf("%s It's your turn! Drop one of your cards or take one",playerId)
+	return fmt.Sprintf("%s It's your turn! Drop one of your cards or take one", playerId)
 }
 
 func showExitAction(playerId string) string {

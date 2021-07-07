@@ -4,17 +4,18 @@ import (
 	"errors"
 	"fmt"
 	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/game"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"log"
 	"os"
 	"strconv"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/view"
 )
 
 type LobbyOption struct{
 	Option []int `json:"option"`
+	Nickname string `json:"nickname"`
 }
 
 func main() {
@@ -47,7 +48,7 @@ func main() {
 			messageToSend, err := translator.CreateAnAction(messageToUse, g)
 			if err != nil {
 				out, _ := g.View("mano")
-				fmt.Fprintf(out, "Invalid command.Try again!\n")
+				fmt.Fprintf(out, "Invalid command.Try again!\n" + err.Error())
 			}
 
 			if translator.MustLeave(messageToSend) {
@@ -112,8 +113,16 @@ func lobby() *game.Game {
 	fmt.Println("* WELCOME TO GUNO *")
 	fmt.Println("* * * * * * * * * *")
 	for {
+		var nick string
+		fmt.Println("Choose your nickname:")
+		_, err2 := fmt.Scan(&nick)
+		if err2 != nil || len(nick) == 0 {
+			fmt.Println("Wrong name")
+			continue
+		}
+
 		input:=initialOption()
-		option :=LobbyOption{[]int{input}}
+		option :=LobbyOption{[]int{input}, nick}
 		game.Encoder.Encode(&option)
 		if input==2{
 			var games LobbyOption
@@ -123,7 +132,7 @@ func lobby() *game.Game {
 				continue
 			}
 			input=gameOption(games)
-			option2 :=LobbyOption{[]int{input}}
+			option2 :=LobbyOption{[]int{input}, ""}
 			game.Encoder.Encode(&option2)
 		}
 		break
