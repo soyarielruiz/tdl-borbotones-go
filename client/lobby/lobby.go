@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/game"
 )
 
 const (
@@ -26,6 +27,13 @@ type Lobby struct {
 
 type LobbyOption struct {
 	Option []int `json:"option"`
+}
+
+func New(g *gocui.Gui) *Lobby {
+	tcpAddr, _ := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
+	conn, _ := net.DialTCP("tcp", nil, tcpAddr)
+	conn.SetWriteBuffer(10)
+	return &Lobby{g, conn, json.NewEncoder(conn), json.NewDecoder(conn), nil}
 }
 
 func (l *Lobby) Layout(g *gocui.Gui) error {
@@ -172,26 +180,13 @@ func (l *Lobby) FindGame(g *gocui.Gui, v *gocui.View) error {
 func (l *Lobby) waitPlayer() {
 	var start LobbyOption
 	if err := l.Decoder.Decode(&start); err == nil {
-		l.G.Update(l.Game)
+		ga := game.NewGame(l.G, l.Encoder, l.Decoder)
+		ga.Run()
 	}
-}
-
-func (l *Lobby) Game(g *gocui.Gui) error {
-	if v, err := g.SetView("game", 1, 1, 50, 50, gocui.TOP); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-		g.SetCurrentView(v.Name())
-		v.Title = "GUNO"
-		fmt.Fprintln(v, "*******************************")
-		fmt.Fprintln(v, "JUUUUUUUGAAAAAAAR")
-	}
-	return nil
 }
 
 func (l *Lobby) reconect() {
 	l.Conn.Close()
-	// time.Sleep(1 * time.Second)
 	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
 	if err != nil {
 		log.Panic(err)

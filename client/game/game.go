@@ -3,48 +3,33 @@ package game
 import (
 	"encoding/json"
 	"log"
-	"net"
-)
 
-const (
-	serverAddress = "127.0.0.1"
-	serverPort    = "8080"
-	serverConn    = "tcp"
+	"github.com/awesome-gocui/gocui"
 )
 
 type Game struct {
+	G       *gocui.Gui
 	Encoder *json.Encoder
 	Decoder *json.Decoder
-	Conn    *net.TCPConn
-	// G       *gocui.Gui
 }
 
-func NewGame() *Game {
-	conn := startClient()
-	encoder := json.NewEncoder(conn)
-	decoder := json.NewDecoder(conn)
-	var game = Game{encoder, decoder, conn}
-	return &game
+func NewGame(g *gocui.Gui, enc *json.Encoder, dec *json.Decoder) *Game {
+	return &Game{g, enc, dec}
 }
 
-func startClient() *net.TCPConn {
-
-	serverConnection := serverAddress + ":" + serverPort
-	log.Println("Starting " + serverConn + " client on " + serverConnection)
-	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
-	if err != nil {
-		log.Panic(err)
+func (ga *Game) Run() {
+	ga.G.SetManagerFunc(Layout)
+	if err := InitKeybindings(ga.G, ga); err != nil {
+		log.Fatalln(err)
 	}
 
-	conn, err := net.DialTCP("tcp", nil, tcpAddr)
-	if err != nil {
-		log.Panic(err)
-	}
+	go ga.receivingData(ga.G)
+}
 
-	err = conn.SetWriteBuffer(10)
-	if err != nil {
-		log.Panic(err)
+func (ga *Game) receivingData(g *gocui.Gui) {
+	for {
+		if err := ReceiveMsgFromGame(g, ga); err != nil {
+			log.Fatalln(err)
+		}
 	}
-
-	return conn
 }

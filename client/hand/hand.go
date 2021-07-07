@@ -14,7 +14,6 @@ import (
 var userCards []tools.Card
 
 func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
-	// time.Sleep(1 * time.Second)
 	if len(action.Cards) > 0 || len(userCards) > 0 {
 		out, _ := gui.View("mano")
 

@@ -1,4 +1,4 @@
-package view
+package game
 
 import (
 	"errors"
@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/game"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
@@ -26,9 +25,7 @@ func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 	return g.SetViewOnTop(name)
 }
 
-func ReceiveMsgFromGame(gui *gocui.Gui, game *game.Game) error {
-	//wait a starting moment
-	// time.Sleep(1 * time.Second)
+func ReceiveMsgFromGame(gui *gocui.Gui, game *Game) error {
 	for {
 		var action tools.Action
 		err := game.Decoder.Decode(&action)
@@ -39,7 +36,7 @@ func ReceiveMsgFromGame(gui *gocui.Gui, game *game.Game) error {
 				os.Exit(1)
 			}
 		}
-		go gui.Update(translator.ManageHand(action))
+		gui.Update(translator.ManageHand(action))
 	}
 }
 
@@ -119,10 +116,10 @@ func Quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-func InitKeybindings(g *gocui.Gui, game *game.Game) error {
+func InitKeybindings(g *gocui.Gui, ga *Game) error {
 
 	// Bind enter key to input to send new messages.
-	if err := g.SetKeybinding("jugador", gocui.KeyEnter, gocui.ModNone, jugadorBind(game)); err != nil {
+	if err := g.SetKeybinding("jugador", gocui.KeyEnter, gocui.ModNone, jugadorBind(ga)); err != nil {
 		log.Panicln(err)
 	}
 
@@ -136,7 +133,7 @@ func InitKeybindings(g *gocui.Gui, game *game.Game) error {
 	return nil
 }
 
-func jugadorBind(game *game.Game) func(g *gocui.Gui, iv *gocui.View) error {
+func jugadorBind(game *Game) func(g *gocui.Gui, iv *gocui.View) error {
 	return func(g *gocui.Gui, iv *gocui.View) error {
 		iv.Autoscroll = true
 		iv.Editable = true
