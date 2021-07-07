@@ -3,10 +3,11 @@ package translator
 import (
 	"errors"
 	"fmt"
-	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/hand"
 	"strconv"
 	"strings"
+
+	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/hand"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
@@ -41,41 +42,41 @@ func createActionFromCommand(words []string, gui *gocui.Gui) (tools.Action, erro
 	case string(tools.TAKE):
 		return checkTakeCommand(words)
 	case "list":
-		return checkListCommand(words,gui)
+		return checkListCommand(words, gui)
 	default:
 		return tools.Action{}, errors.New("string: Command not recognized")
 	}
 }
 
-func checkDropCommand(words []string) (tools.Action, error){
-	if len(words)>3{
+func checkDropCommand(words []string) (tools.Action, error) {
+	if len(words) >= 3 {
 		return hand.DropACard(words)
-	}else{
-		return tools.Action{},errors.New("string: Command not recognized")
+	} else {
+		return tools.Action{}, errors.New("string: Command not recognized")
 	}
 }
 
-func checkTakeCommand(words []string) (tools.Action, error){
-	if len(words)==1{
+func checkTakeCommand(words []string) (tools.Action, error) {
+	if len(words) == 1 {
 		return tools.Action{Command: tools.TAKE}, nil
-	}else{
-		return tools.Action{},errors.New("string: Command not recognized")
+	} else {
+		return tools.Action{}, errors.New("string: Command not recognized")
 	}
 }
 
-func checkExitCommand(words []string) (tools.Action, error){
-	if len(words)==1{
+func checkExitCommand(words []string) (tools.Action, error) {
+	if len(words) == 1 {
 		return tools.Action{Command: tools.EXIT}, nil
-	}else{
-		return tools.Action{},errors.New("string: Command not recognized")
+	} else {
+		return tools.Action{}, errors.New("string: Command not recognized")
 	}
 }
 
-func checkListCommand(words []string,gui *gocui.Gui) (tools.Action, error){
-	if len(words)==1{
+func checkListCommand(words []string, gui *gocui.Gui) (tools.Action, error) {
+	if len(words) == 1 {
 		return tools.Action{}, hand.ShowHand(gui)
-	}else{
-		return tools.Action{},errors.New("string: Command not recognized")
+	} else {
+		return tools.Action{}, errors.New("string: Command not recognized")
 	}
 }
 
@@ -122,7 +123,7 @@ func showTakeAction(playerId string) string {
 }
 
 func showTurnAssigned(playerId string) string {
-	return fmt.Sprintf("%s It's your turn! Drop one of your cards or take one",playerId)
+	return fmt.Sprintf("%s It's your turn! Drop one of your cards or take one", playerId)
 }
 
 func showExitAction(playerId string) string {

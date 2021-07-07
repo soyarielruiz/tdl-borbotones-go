@@ -2,10 +2,8 @@ package game
 
 import (
 	"encoding/json"
-	"net"
 	"log"
-	"fmt"
-	"os"
+	"net"
 )
 
 const (
@@ -14,18 +12,19 @@ const (
 	serverConn    = "tcp"
 )
 
-type Game struct{
+type Game struct {
 	Encoder *json.Encoder
 	Decoder *json.Decoder
-	Conn *net.TCPConn
+	Conn    *net.TCPConn
+	// G       *gocui.Gui
 }
 
-func NewGame() *Game{
-	 conn:=startClient()
-	 encoder:=json.NewEncoder(conn)
-	 decoder:=json.NewDecoder(conn)
-	 var game=Game{encoder,decoder,conn}
-	 return &game
+func NewGame() *Game {
+	conn := startClient()
+	encoder := json.NewEncoder(conn)
+	decoder := json.NewDecoder(conn)
+	var game = Game{encoder, decoder, conn}
+	return &game
 }
 
 func startClient() *net.TCPConn {
@@ -33,20 +32,19 @@ func startClient() *net.TCPConn {
 	serverConnection := serverAddress + ":" + serverPort
 	log.Println("Starting " + serverConn + " client on " + serverConnection)
 	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
-	checkError(err)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	conn, err := net.DialTCP("tcp", nil, tcpAddr)
-	checkError(err)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	err = conn.SetWriteBuffer(10)
-	checkError(err)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	return conn
-}
-
-func checkError(err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
-	}
 }

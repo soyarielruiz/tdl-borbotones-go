@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"strconv"
-	"time"
 
 	"github.com/awesome-gocui/gocui"
 )
@@ -192,7 +191,7 @@ func (l *Lobby) Game(g *gocui.Gui) error {
 
 func (l *Lobby) reconect() {
 	l.Conn.Close()
-	time.Sleep(1 * time.Second)
+	// time.Sleep(1 * time.Second)
 	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
 	if err != nil {
 		log.Panic(err)
