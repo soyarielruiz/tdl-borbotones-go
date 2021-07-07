@@ -3,24 +3,22 @@ package hand
 import (
 	"errors"
 	"fmt"
-	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/tools"
-	"os"
 	"strconv"
 	"strings"
-	"time"
+
+	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
 
 var userCards []tools.Card
 
 func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
-	time.Sleep(1 * time.Second)
 	if len(action.Cards) > 0 || len(userCards) > 0 {
 		out, _ := gui.View("mano")
 
 		if len(action.Cards) > 0 && action.Command == "" {
 			userCards = action.Cards
-			displayInitialCard(gui,action.Card)
+			displayInitialCard(gui, action.Card)
 		}
 
 		if action.Command == tools.TAKE && action.Card.Suit != "" {
@@ -28,7 +26,7 @@ func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 		}
 
 		hand := displayCards(userCards)
-		_, err := fmt.Fprintf(out, hand)
+		_, err := fmt.Fprint(out, hand)
 		if err != nil {
 			return err
 		}
@@ -40,7 +38,7 @@ func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 func displayInitialCard(gui *gocui.Gui, card tools.Card) {
 	out, _ := gui.View("mesa")
 	cardToShow := string(card.Suit) + " " + strconv.Itoa(card.Number)
-	fmt.Fprintf(out, "Initial card: " + cardToShow + "\n")
+	fmt.Fprintf(out, "Initial card: "+cardToShow+"\n")
 }
 
 func displayCards(hand []tools.Card) string {
@@ -79,7 +77,7 @@ func itsAPlayingCard(cardSent tools.Card) (interface{}, error) {
 	return true, nil
 }
 
-func getCardFromMessage(color string, number string) tools.Card{
+func getCardFromMessage(color string, number string) tools.Card {
 	var colorToUse = tools.GREEN
 	switch strings.ToLower(color) {
 	case string(tools.GREEN):
@@ -95,30 +93,23 @@ func getCardFromMessage(color string, number string) tools.Card{
 	}
 
 	value, err := strconv.ParseInt(number, 10, 64)
-	if err!=nil || colorToUse == ""{
+	if err != nil || colorToUse == "" {
 		return tools.Card{}
 	}
 
 	return tools.Card{Number: int(value), Suit: colorToUse}
 }
 
-func ShowHand(gui *gocui.Gui) (error) {
+func ShowHand(gui *gocui.Gui) error {
 	out, _ := gui.View("mano")
 
 	if len(userCards) > 0 {
 		hand := displayCards(userCards)
-		_, err := fmt.Fprintf(out, hand)
+		_, err := fmt.Fprint(out, hand)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func checkError(err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
-	}
 }
