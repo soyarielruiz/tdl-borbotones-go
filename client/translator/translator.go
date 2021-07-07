@@ -131,17 +131,11 @@ func showExitAction(playerId string) string {
 }
 
 func MustLeave(action tools.Action) bool {
-	if tools.EXIT == action.Command {
-		return true
-	}
-	return false
+	return tools.EXIT == action.Command
 }
 
 func GameWasEnded(action tools.Action) bool {
-	if tools.GAME_ENDED == action.Command {
-		return true
-	}
-	return false
+	return tools.GAME_ENDED == action.Command
 }
 
 func ManageHand(action tools.Action) func(gui *gocui.Gui) error {

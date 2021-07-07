@@ -3,7 +3,6 @@ package hand
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -27,7 +26,7 @@ func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 		}
 
 		hand := displayCards(userCards)
-		_, err := fmt.Fprintf(out, hand)
+		_, err := fmt.Fprint(out, hand)
 		if err != nil {
 			return err
 		}
@@ -106,18 +105,11 @@ func ShowHand(gui *gocui.Gui) error {
 
 	if len(userCards) > 0 {
 		hand := displayCards(userCards)
-		_, err := fmt.Fprintf(out, hand)
+		_, err := fmt.Fprint(out, hand)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func checkError(err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
-	}
 }
