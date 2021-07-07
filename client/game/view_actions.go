@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/awesome-gocui/gocui"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
@@ -26,18 +25,15 @@ func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 }
 
 func ReceiveMsgFromGame(gui *gocui.Gui, game *Game) error {
-	for {
+	var err error
+	for err == nil {
 		var action tools.Action
-		err := game.Decoder.Decode(&action)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error en decode : %s\n", err)
-			if "EOF" == err.Error() {
-				fmt.Fprintf(os.Stderr, "Fatal error in conection: %s ", err.Error())
-				os.Exit(1)
-			}
+		err = game.Decoder.Decode(&action)
+		if err == nil {
+			gui.Update(translator.ManageHand(action))
 		}
-		gui.Update(translator.ManageHand(action))
 	}
+	return err
 }
 
 // Layout Creates view with a division in full size

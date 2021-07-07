@@ -3,6 +3,7 @@ package game
 import (
 	"encoding/json"
 	"log"
+	"time"
 
 	"github.com/awesome-gocui/gocui"
 )
@@ -23,13 +24,6 @@ func (ga *Game) Run() {
 		log.Fatalln(err)
 	}
 
-	go ga.receivingData(ga.G)
-}
-
-func (ga *Game) receivingData(g *gocui.Gui) {
-	for {
-		if err := ReceiveMsgFromGame(g, ga); err != nil {
-			log.Fatalln(err)
-		}
-	}
+	time.Sleep(1 * time.Second)
+	go ReceiveMsgFromGame(ga.G, ga)
 }
