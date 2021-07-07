@@ -3,10 +3,11 @@ package translator
 import (
 	"errors"
 	"fmt"
-	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/hand"
 	"strconv"
 	"strings"
+
+	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/hand"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
@@ -48,7 +49,7 @@ func createActionFromCommand(words []string, gui *gocui.Gui) (tools.Action, erro
 }
 
 func checkDropCommand(words []string) (tools.Action, error) {
-	if len(words) > 2 {
+	if len(words) >= 3 {
 		return hand.DropACard(words)
 	} else {
 		return tools.Action{}, errors.New("string: Command not recognized")
@@ -130,17 +131,11 @@ func showExitAction(playerId string) string {
 }
 
 func MustLeave(action tools.Action) bool {
-	if tools.EXIT == action.Command {
-		return true
-	}
-	return false
+	return tools.EXIT == action.Command
 }
 
 func GameWasEnded(action tools.Action) bool {
-	if tools.GAME_ENDED == action.Command {
-		return true
-	}
-	return false
+	return tools.GAME_ENDED == action.Command
 }
 
 func ManageHand(action tools.Action) func(gui *gocui.Gui) error {
