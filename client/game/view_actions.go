@@ -85,7 +85,7 @@ func Layout(g *gocui.Gui) error {
 		}
 		v.Title = "Help"
 		v.Wrap = true
-		v.Autoscroll = true
+		v.Autoscroll = false
 		v.Frame = true
 		initHelp(g, v)
 	}
