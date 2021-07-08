@@ -59,8 +59,7 @@ func DropACard(words []string) (tools.Action, error) {
 	if err != nil {
 		return tools.Action{}, err
 	}
-	message := strings.Join(words[3:], " ")
-	return tools.Action{Command: tools.DROP, Card: card, Message: message, Cards: []tools.Card{}}, nil
+	return tools.Action{Command: tools.DROP, Card: card, Cards: []tools.Card{}}, nil
 }
 
 func itsAPlayingCard(cardSent tools.Card) (interface{}, error) {
