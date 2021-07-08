@@ -102,7 +102,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 			response = showTakeAction(action.PlayerId[:5])
 			out = "mano"
 		case string(tools.GAME_ENDED):
-			response = "Game Finalizado"
+			response = string(action.Message)
 			out = "mano"
 		default:
 			response = ""
@@ -163,7 +163,10 @@ func showFromServer(gui *gocui.Gui, action tools.Action) error {
 			}
 			message = ""
 		}
-	}
+	} else if len(action.Message) > 0 {
+			out, _ := gui.View("mano")
+			fmt.Fprintln(out, action.Message)
+		}
 	return nil
 }
 
