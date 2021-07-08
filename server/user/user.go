@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 
-	"github.com/google/uuid"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
 
@@ -30,8 +29,8 @@ func (u *User) Close() {
 	close(u.SendChannel)
 }
 
-func NewUser(conn net.Conn) *User {
-	var usr = User{make(chan tools.Action), make(chan tools.Action), uuid.New().String(), conn, false, 3}
+func NewUser(conn net.Conn, nick string) *User {
+	var usr = User{make(chan tools.Action), make(chan tools.Action), nick, conn, false, 3}
 	go usr.Send()
 	return &usr
 }
