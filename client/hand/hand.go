@@ -11,6 +11,7 @@ import (
 )
 
 var userCards []tools.Card
+var cardOnTable tools.Card
 
 func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 	if len(action.Cards) > 0 || len(userCards) > 0 {
@@ -19,6 +20,7 @@ func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 		if len(action.Cards) > 0 && action.Command == "" {
 			userCards = action.Cards
 			displayInitialCard(gui, action.Card)
+			_ = SaveCardOnTable(action.Card)
 		}
 
 		if action.Command == tools.TAKE && action.Card.Suit != "" {
@@ -65,12 +67,14 @@ func itsAPlayingCard(cardSent tools.Card) (interface{}, error) {
 	existingPosition := -1
 	for i, card := range userCards {
 		if cardSent.Suit == card.Suit && cardSent.Number == card.Number {
-			existingPosition = i
+			if cardSent.Suit == cardOnTable.Suit || cardSent.Number == cardOnTable.Number {
+				existingPosition = i
+			}
 		}
 	}
 
 	if existingPosition == -1 {
-		return false, errors.New("card: No posees esa carta en tu mano")
+		return false, errors.New("card: You cannot drop that card")
 	}
 
 	userCards = append(userCards[:existingPosition], userCards[existingPosition+1:]...)
@@ -112,4 +116,12 @@ func ShowHand(gui *gocui.Gui) error {
 	}
 
 	return nil
+}
+
+func SaveCardOnTable(card tools.Card) error {
+	if cardOnTable.Suit != card.Suit || cardOnTable.Number != card.Number {
+		cardOnTable = card
+		return nil
+	}
+	return errors.New("bool: Duplicated card")
 }
