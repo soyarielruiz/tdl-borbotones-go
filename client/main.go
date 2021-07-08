@@ -10,6 +10,8 @@ import (
 func main() {
 
 	g, err := gocui.NewGui(gocui.OutputNormal, false)
+	g.Cursor = true
+	g.Mouse = true
 	l := lobby.New(g)
 	if err != nil {
 		log.Panicln(err)
