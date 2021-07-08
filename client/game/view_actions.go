@@ -101,8 +101,8 @@ func initHelp(g *gocui.Gui, v *gocui.View) {
 	fmt.Fprintf(v, "- If it's your turn drop a card that matches the number or suit of the"+
 		"  card on the table.\n")
 	fmt.Fprintf(v, "- If you don't have one you must take one from the draw pile.\n")
-	fmt.Fprintf(v, "- If it's not your turn but you have a card to play try to drop it and "+
-		" get ahead of the other players.\n\n")
+	fmt.Fprintf(v, "- If it's not your turn but you have a card that matches the one on" +
+		"     the table try to drop it and get ahead of the other players.\n\n")
 	fmt.Fprintf(v, YELLOW, "Commands:\n")
 	fmt.Fprintf(v, "- drop [color] [number] (e.g. drop red 5)\n"+
 		"- take (takes one card from draw pile)\n- list (displays your hand)\n- exit")
