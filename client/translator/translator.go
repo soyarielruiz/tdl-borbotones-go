@@ -115,7 +115,11 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 }
 
 func showDropAction(playerId string, card tools.Card) string {
-	return fmt.Sprintf("%s throws %s %s", playerId, strings.ToLower(string(card.Suit)), strconv.Itoa(card.Number))
+	err := hand.SaveCardOnTable(card)
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%s throws %s %s", playerId, strings.ToUpper(string(card.Suit)), strconv.Itoa(card.Number))
 }
 
 func showTakeAction(playerId string) string {
