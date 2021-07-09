@@ -46,7 +46,7 @@ func Layout(g *gocui.Gui) error {
 	g.SelFgColor = gocui.ColorGreen
 
 	maxX, maxY := g.Size()
-	if v, err := g.SetView("jugador", 0, 0, maxX/2-1, maxY/2-1, 0); err != nil {
+	if v, err := g.SetView("jugador", 0, 0, maxX/2-1, maxY/4-1, 0); err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
@@ -58,12 +58,21 @@ func Layout(g *gocui.Gui) error {
 			return err
 		}
 	}
-
-	if v, err := g.SetView("mano", 0, maxY/2, maxX/2-1, maxY-1, 0); err != nil {
+	if v, err := g.SetView("hand", 0, maxY/4, maxX/2-1, maxY/2-1, 0); err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
 		v.Title = "Hand"
+		v.Wrap = true
+		v.Autoscroll = true
+		v.Frame = true
+	}
+
+	if v, err := g.SetView("gamelog", 0, maxY/2, maxX/2-1, maxY-1, 0); err != nil {
+		if !errors.Is(err, gocui.ErrUnknownView) {
+			return err
+		}
+		v.Title = "Game log"
 		v.Wrap = true
 		v.Autoscroll = true
 	}
@@ -103,7 +112,7 @@ func initHelp(g *gocui.Gui, v *gocui.View) {
 	fmt.Fprintf(v, "- If it's your turn drop a card that matches the number or suit of the"+
 		"  card on the table.\n")
 	fmt.Fprintf(v, "- If you don't have one you must take one from the draw pile.\n")
-	fmt.Fprintf(v, "- If it's not your turn but you have a card that matches the one on" +
+	fmt.Fprintf(v, "- If it's not your turn but you have a card that matches the one on"+
 		"     the table try to drop it and get ahead of the other players.\n\n")
 	fmt.Fprintf(v, YELLOW, "Commands:\n")
 	fmt.Fprintf(v, "- drop [color] [number] (e.g. drop red 5)\n"+
@@ -144,8 +153,8 @@ func jugadorBind(game *Game) func(g *gocui.Gui, iv *gocui.View) error {
 			messageToUse := string(iv.Buffer())
 			messageToSend, err := translator.CreateAnAction(messageToUse, g)
 			if err != nil {
-				out, _ := g.View("mano")
-				fmt.Fprintf(out,"Error: %s. Try again!\n", err)
+				out, _ := g.View("gamelog")
+				fmt.Fprintf(out, "Error: %s. Try again!\n", err)
 			}
 
 			if translator.MustLeave(messageToSend) {
@@ -153,7 +162,7 @@ func jugadorBind(game *Game) func(g *gocui.Gui, iv *gocui.View) error {
 			}
 
 			if translator.GameWasEnded(messageToSend) {
-				out, _ := g.View("mano")
+				out, _ := g.View("gamelog")
 				fmt.Fprintf(out, "Juego Finalizado \n")
 				return nil
 			}

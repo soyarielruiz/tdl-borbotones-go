@@ -15,8 +15,8 @@ var cardOnTable tools.Card
 
 func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 	if len(action.Cards) > 0 || len(userCards) > 0 {
-		out, _ := gui.View("mano")
-
+		out, _ := gui.View("hand")
+		out.Clear()
 		if len(action.Cards) > 0 && action.Command == "" {
 			userCards = action.Cards
 			displayInitialCard(gui, action.Card)
@@ -104,7 +104,7 @@ func getCardFromMessage(color string, number string) tools.Card {
 }
 
 func ShowHand(gui *gocui.Gui) error {
-	out, _ := gui.View("mano")
+	out, _ := gui.View("gamelog")
 
 	if len(userCards) > 0 {
 		hand := displayCards(userCards)
