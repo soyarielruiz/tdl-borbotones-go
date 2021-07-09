@@ -25,7 +25,7 @@ func NewCollection() *GamesCollection{
 		                     games:make(map[int] *game.Game)}
 }
 
-func (collection *GamesCollection) CreateNewGame(conn net.Conn){
+func (collection *GamesCollection) CreateNewGame(conn net.Conn, nick string){
 	  fmt.Println("entre a crear nuevo juego")
 	  collection.gameNumber=collection.gameNumber+1
 	  users:=make(chan *user.User)
@@ -33,7 +33,7 @@ func (collection *GamesCollection) CreateNewGame(conn net.Conn){
 	  collection.games[collection.gameNumber]=new_game
 	  collection.gamesChannels[collection.gameNumber]=users
 	  go new_game.Run()
-	  users <- user.NewUser(conn)
+	  users <- user.NewUser(conn, nick)
 }
 
 func (collection *GamesCollection) SendExistingGames(conn net.Conn) int {
@@ -51,10 +51,10 @@ func (collection *GamesCollection) SendExistingGames(conn net.Conn) int {
 	return len(games)
 }
 
-func (collection GamesCollection) AddUserToGame(conn net.Conn, gameId int){
+func (collection GamesCollection) AddUserToGame(conn net.Conn, gameId int, nick string){
 	collection.mu.Lock()
 	gameChannel:=collection.gamesChannels[gameId]
-	gameChannel <- user.NewUser(conn)
+	gameChannel <- user.NewUser(conn, nick)
 	collection.mu.Unlock()
 }
 

@@ -1,11 +1,11 @@
 package gameManager
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"os"
-	"encoding/json"
-	"fmt"
 
 	"github.com/soyarielruiz/tdl-borbotones-go/server/gamesCollection"
 )
@@ -18,6 +18,7 @@ const (
 
 type LobbyOption struct{
 	Option []int `json:"option"`
+	Nickname string `json:"nickname"`
 }
 
 func Start() {
@@ -54,9 +55,9 @@ func lobby(conn net.Conn, collection *gamesCollection.GamesCollection) {
 			option:=gameOption.Option[0]
 			switch option {
 			case 1 : 
-				collection.CreateNewGame(conn)
+				collection.CreateNewGame(conn, gameOption.Nickname)
 			case 2: 
-				success:=joinExistingGame(conn,collection)
+				success:=joinExistingGame(conn,collection, gameOption.Nickname)
 				if success {
 					break 
 				} else {
@@ -71,7 +72,7 @@ func lobby(conn net.Conn, collection *gamesCollection.GamesCollection) {
 	fmt.Println("sali del lobby")
 }
 
-func joinExistingGame(conn net.Conn,collection *gamesCollection.GamesCollection) bool{
+func joinExistingGame(conn net.Conn,collection *gamesCollection.GamesCollection, nick string) bool{
 	collection.DeleteDeadGames()
 	games:=collection.SendExistingGames(conn)
 	if games !=0{
@@ -80,7 +81,7 @@ func joinExistingGame(conn net.Conn,collection *gamesCollection.GamesCollection)
 		if error:=decoder.Decode(&gameNumber); error!=nil{
 			return false
 		}
-		collection.AddUserToGame(conn,gameNumber.Option[0])
+		collection.AddUserToGame(conn,gameNumber.Option[0], nick)
 		return true
 	}else{
 		return false
