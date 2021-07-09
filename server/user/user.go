@@ -38,13 +38,16 @@ func NewUser(conn net.Conn, nick string) *User {
 func (usr *User) Send() {
 	encoder := json.NewEncoder(usr.conn)
 	for !usr.Closed {
-		action, ok := <-usr.SendChannel
-		if !ok {
-			log.Printf("Channel for user %s closed", usr.PlayerId)
-			break
+		action,ok := <-usr.SendChannel
+		if ok {
+			log.Printf("Sending action to usr %s", action)
+			encoder.Encode(&action)
 		}
-		log.Printf("Sending action to usr %s", action)
-		encoder.Encode(&action)
+
+		if action.Command == tools.GAME_ENDED {
+			usr.Close()
+			log.Printf("Channel for user %s closed", usr.PlayerId)
+		}
 	}
 }
 

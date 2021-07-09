@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/awesome-gocui/gocui"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
@@ -30,6 +31,7 @@ func ReceiveMsgFromGame(gui *gocui.Gui, game *Game) error {
 		var action tools.Action
 		err = game.Decoder.Decode(&action)
 		if err == nil {
+			fmt.Fprintf(os.Stderr, "action recibida %s\n", action)
 			gui.Update(translator.ManageHand(action))
 		}
 	}
@@ -101,8 +103,8 @@ func initHelp(g *gocui.Gui, v *gocui.View) {
 	fmt.Fprintf(v, "- If it's your turn drop a card that matches the number or suit of the"+
 		"  card on the table.\n")
 	fmt.Fprintf(v, "- If you don't have one you must take one from the draw pile.\n")
-	fmt.Fprintf(v, "- If it's not your turn but you have a card to play try to drop it and "+
-		" get ahead of the other players.\n\n")
+	fmt.Fprintf(v, "- If it's not your turn but you have a card that matches the one on" +
+		"     the table try to drop it and get ahead of the other players.\n\n")
 	fmt.Fprintf(v, YELLOW, "Commands:\n")
 	fmt.Fprintf(v, "- drop [color] [number] (e.g. drop red 5)\n"+
 		"- take (takes one card from draw pile)\n- list (displays your hand)\n- exit")
@@ -143,7 +145,7 @@ func jugadorBind(game *Game) func(g *gocui.Gui, iv *gocui.View) error {
 			messageToSend, err := translator.CreateAnAction(messageToUse, g)
 			if err != nil {
 				out, _ := g.View("mano")
-				fmt.Fprintf(out, "Invalid command.Try again!\n")
+				fmt.Fprintf(out,"Error: %s. Try again!\n", err)
 			}
 
 			if translator.MustLeave(messageToSend) {

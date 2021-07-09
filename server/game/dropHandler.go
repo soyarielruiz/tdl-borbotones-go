@@ -1,9 +1,7 @@
 package game
 
 import (
-	"fmt"
 	"github.com/soyarielruiz/tdl-borbotones-go/tools"
-	"strconv"
 )
 
 type DropHandler struct{}
@@ -11,7 +9,6 @@ type DropHandler struct{}
 func (t DropHandler) Handle(action tools.Action, game *Game) {
 	frontCard := game.Deck.GetFrontCard()
 	if game.Tur.IsUserTurn(action.PlayerId) {
-		game.Users[action.PlayerId].SendChannel <- tools.CreateFromMessage(action.PlayerId, fmt.Sprintf("CARTA EN MESA %s %s", strconv.Itoa(frontCard.Number), frontCard.Suit))
 		if action.Card.Number == frontCard.Number || action.Card.Suit == frontCard.Suit {
 			game.Deck.PutCard(action.Card)
 			game.SendToAll(&action)
@@ -28,7 +25,7 @@ func (t DropHandler) Handle(action tools.Action, game *Game) {
 				})
 			}
 		} else {
-			game.Users[action.PlayerId].SendChannel <- tools.CreateFromMessage(action.PlayerId, "Jugada invalida")
+			game.Users[action.PlayerId].SendChannel <- tools.CreateFromMessage(action.PlayerId, "Invalid move. Card must match number or suit of the card on the table.Try again!")
 		}
 	} else if action.Card.Number == frontCard.Number &&
 		action.Card.Suit == frontCard.Suit {
@@ -37,6 +34,6 @@ func (t DropHandler) Handle(action tools.Action, game *Game) {
 		game.Tur.GoTo(action.PlayerId)
 		game.TurnMoveForward()
 	} else {
-		game.Users[action.PlayerId].SendChannel <- tools.CreateFromMessage(action.PlayerId, "No es tu turno!")
+		game.Users[action.PlayerId].SendChannel <- tools.CreateFromMessage(action.PlayerId, "It's not your turn!")
 	}
 }
