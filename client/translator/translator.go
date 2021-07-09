@@ -44,7 +44,7 @@ func createActionFromCommand(words []string, gui *gocui.Gui) (tools.Action, erro
 	case "list":
 		return checkListCommand(words, gui)
 	default:
-		return tools.Action{}, errors.New("string: Command not recognized e:" + words[0])
+		return tools.Action{}, errors.New("string: Command not recognized :" + words[0])
 	}
 }
 

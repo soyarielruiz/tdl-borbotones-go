@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/awesome-gocui/gocui"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
@@ -32,6 +33,7 @@ func ReceiveMsgFromGame(gui *gocui.Gui, game *Game) error {
 		if err == nil {
 			gui.Update(translator.ManageHand(action))
 		}
+		time.Sleep(1 * time.Second)
 	}
 	return err
 }
@@ -158,16 +160,10 @@ func jugadorBind(game *Game) func(g *gocui.Gui, iv *gocui.View) error {
 			if translator.MustLeave(messageToSend) {
 				return Quit(g, iv)
 			}
-
-			if translator.GameWasEnded(messageToSend) {
-				out, _ := g.View("gamelog")
-				fmt.Fprintf(out, "Juego Finalizado \n")
-				return nil
-			}
-
+      
 			if translator.HaveActionToSend(messageToSend) {
 				if err := game.Encoder.Encode(&messageToSend); err != nil {
-					return err
+					return Quit(g, iv)
 				}
 			}
 

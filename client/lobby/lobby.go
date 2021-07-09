@@ -80,7 +80,7 @@ func (l *Lobby) keyHandler(ch rune) func(g *gocui.Gui, v *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		key := int(ch - 48)
 		if 0 < key && key <= len(l.Games) {
-			lo := LobbyOption{[]int{key}, ""}
+			lo := LobbyOption{[]int{l.Games[key-1]}, ""}
 			l.Encoder.Encode(lo)
 			if err := g.DeleteView("gamelist"); err != nil {
 				return err
