@@ -3,12 +3,11 @@ package lobby
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/game"
 	"log"
 	"net"
 	"strconv"
-
-	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/game"
 )
 
 const (

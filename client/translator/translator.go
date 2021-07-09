@@ -86,7 +86,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 
 	if string(action.Command) == string(tools.TURN_ASSIGNED) {
 		response = showTurnAssigned(action.PlayerId)
-		out = "mano"
+		out = "gamelog"
 		hand.ItsYourTurn(action)
 		return response, out, nil
 	}
@@ -98,13 +98,13 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 			out = "mesa"
 		case string(tools.EXIT):
 			response = showExitAction(action.PlayerId)
-			out = "mano"
+			out = "gamelog"
 		case string(tools.TAKE):
 			response = showTakeAction(action.PlayerId)
-			out = "mano"
+			out = "gamelog"
 		case string(tools.GAME_ENDED):
 			response = string(action.Message)
-			out = "mano"
+			out = "gamelog"
 		default:
 			response = ""
 			out = ""
@@ -166,9 +166,9 @@ func showFromServer(gui *gocui.Gui, action tools.Action) error {
 			message = ""
 		}
 	} else if len(action.Message) > 0 {
-			out, _ := gui.View("mano")
-			fmt.Fprintln(out, action.Message)
-		}
+		out, _ := gui.View("gamelog")
+		fmt.Fprintln(out, action.Message)
+	}
 	return nil
 }
 
