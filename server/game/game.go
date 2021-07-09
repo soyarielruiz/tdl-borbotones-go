@@ -50,7 +50,6 @@ func (game *Game) Run() {
 		}
 	}
 	log.Printf("Game %d ended", game.GameNumber)
-	game.closeAll()
 }
 
 func (game *Game) recvUsers() {
@@ -75,14 +74,6 @@ func (game *Game) SendToAll(a *tools.Action) {
 	}
 }
 
-func (game *Game) closeAll() {
-	log.Printf("Close All in game %d\n", game.GameNumber)
-	for _, u := range game.Users {
-		u.Close()
-	}
-	close(game.RecvChan)
-}
-
 func (game *Game) TurnMoveForward() {
 	game.Tur.Next()
 	game.Users[game.Tur.CurrentUser()].SendChannel <- tools.Action{
@@ -97,7 +88,6 @@ func (game *Game) TurnMoveForward() {
 func (game *Game) sendInitialCards() {
 	for _, u := range game.Users {
 		cardsAction := tools.Action{"",game.Deck.GetFrontCard(), u.PlayerId, "", game.Deck.GetCardsFromDeck(3)}
-		//log.Printf("Sending initial cards to user %s. game=%d. cards %s", u.PlayerId, game.GameNumber, cardsAction.Cards)
 		u.SendChannel <- cardsAction
 	}
 	game.Users[game.Tur.CurrentUser()].SendChannel <- tools.Action{

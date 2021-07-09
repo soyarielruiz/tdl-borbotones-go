@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/awesome-gocui/gocui"
 	"github.com/soyarielruiz/tdl-borbotones-go/client/translator"
@@ -30,6 +31,7 @@ func ReceiveMsgFromGame(gui *gocui.Gui, game *Game) error {
 		var action tools.Action
 		err = game.Decoder.Decode(&action)
 		if err == nil {
+			fmt.Fprintf(os.Stderr, "action recibida %s\n", action)
 			gui.Update(translator.ManageHand(action))
 		}
 	}
