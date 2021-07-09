@@ -19,11 +19,17 @@ func NewGame(g *gocui.Gui, enc *json.Encoder, dec *json.Decoder) *Game {
 }
 
 func (ga *Game) Run() {
+	
 	ga.G.SetManagerFunc(Layout)
 	if err := InitKeybindings(ga.G, ga); err != nil {
 		log.Fatalln(err)
 	}
 
 	time.Sleep(1 * time.Second)
-	go ReceiveMsgFromGame(ga.G, ga)
+	ReceiveMsgFromGame(ga.G, ga)
+
+	ga.G.Update(func(g *gocui.Gui) error {
+		time.Sleep(3 * time.Second)
+		return gocui.ErrQuit
+	})
 }
