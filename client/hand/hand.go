@@ -12,6 +12,7 @@ import (
 
 var userCards []tools.Card
 var cardOnTable tools.Card
+var itsMyTurn bool
 
 func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 	if len(action.Cards) > 0 || len(userCards) > 0 {
@@ -20,7 +21,7 @@ func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 		if len(action.Cards) > 0 && action.Command == "" {
 			userCards = action.Cards
 			displayInitialCard(gui, action.Card)
-			_ = SaveCardOnTable(action.Card)
+			SaveCardOnTable(action.Card)
 		}
 
 		if action.Command == tools.TAKE && action.Card.Suit != "" {
@@ -62,22 +63,40 @@ func DropACard(words []string) (tools.Action, error) {
 	return tools.Action{Command: tools.DROP, Card: card, Cards: []tools.Card{}}, nil
 }
 
-func itsAPlayingCard(cardSent tools.Card) (interface{}, error) {
+func itsAPlayingCard(cardSent tools.Card) (bool, error) {
+
 	existingPosition := -1
-	for i, card := range userCards {
-		if cardSent.Suit == card.Suit && cardSent.Number == card.Number {
-			if cardSent.Suit == cardOnTable.Suit || cardSent.Number == cardOnTable.Number {
-				existingPosition = i
-			}
-		}
-	}
+	existingPosition = searchCardPosition(cardSent, itsMyTurn)
 
 	if existingPosition == -1 {
 		return false, errors.New("card: You cannot drop that card")
 	}
 
+	// remove card from my cards
 	userCards = append(userCards[:existingPosition], userCards[existingPosition+1:]...)
+	// it's not your turn anymore
+	itsMyTurn = false
 	return true, nil
+}
+
+func searchCardPosition(cardSent tools.Card, withTurn bool) int {
+	existingPosition := -1
+	for i, card := range userCards {
+		if cardSent.Suit == card.Suit && cardSent.Number == card.Number {
+			if withTurn {
+				if cardSent.Suit == cardOnTable.Suit || cardSent.Number == cardOnTable.Number {
+					existingPosition = i
+				}
+			} else {
+				if cardSent.Suit == cardOnTable.Suit && cardSent.Number == cardOnTable.Number {
+					existingPosition = i
+				}
+			}
+
+		}
+	}
+
+	return existingPosition
 }
 
 func getCardFromMessage(color string, number string) tools.Card {
@@ -105,7 +124,6 @@ func getCardFromMessage(color string, number string) tools.Card {
 
 func ShowHand(gui *gocui.Gui) error {
 	out, _ := gui.View("gamelog")
-
 	if len(userCards) > 0 {
 		hand := displayCards(userCards)
 		_, err := fmt.Fprint(out, hand)
@@ -113,14 +131,13 @@ func ShowHand(gui *gocui.Gui) error {
 			return err
 		}
 	}
-
 	return nil
 }
 
-func SaveCardOnTable(card tools.Card) error {
-	if cardOnTable.Suit != card.Suit || cardOnTable.Number != card.Number {
-		cardOnTable = card
-		return nil
-	}
-	return errors.New("bool: Duplicated card")
+func SaveCardOnTable(card tools.Card) {
+	cardOnTable = card
+}
+
+func ItsYourTurn(action tools.Action) {
+	itsMyTurn = true
 }
