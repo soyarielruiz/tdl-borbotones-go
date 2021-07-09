@@ -87,6 +87,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 	if string(action.Command) == string(tools.TURN_ASSIGNED) {
 		response = showTurnAssigned(action.PlayerId)
 		out = "mano"
+		hand.ItsYourTurn(action)
 		return response, out, nil
 	}
 
@@ -115,10 +116,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 }
 
 func showDropAction(playerId string, card tools.Card) string {
-	err := hand.SaveCardOnTable(card)
-	if err != nil {
-		return ""
-	}
+	hand.SaveCardOnTable(card)
 	return fmt.Sprintf("%s throws %s %s", playerId, strings.ToUpper(string(card.Suit)), strconv.Itoa(card.Number))
 }
 
