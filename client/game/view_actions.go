@@ -145,7 +145,7 @@ func jugadorBind(game *Game) func(g *gocui.Gui, iv *gocui.View) error {
 			messageToSend, err := translator.CreateAnAction(messageToUse, g)
 			if err != nil {
 				out, _ := g.View("mano")
-				fmt.Fprintf(out, "Invalid command.Try again!\n")
+				fmt.Fprintf(out,"Error: %s. Try again!\n", err)
 			}
 
 			if translator.MustLeave(messageToSend) {
