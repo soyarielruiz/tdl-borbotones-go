@@ -87,7 +87,7 @@ func (game *Game) TurnMoveForward() {
 
 func (game *Game) sendInitialCards() {
 	for _, u := range game.Users {
-		cardsAction := tools.Action{"",game.Deck.GetFrontCard(), u.PlayerId, "", game.Deck.GetCardsFromDeck(3)}
+		cardsAction := tools.Action{Card: game.Deck.GetFrontCard(), PlayerId: u.PlayerId, Cards: game.Deck.GetCardsFromDeck(3)}
 		u.SendChannel <- cardsAction
 	}
 	game.Users[game.Tur.CurrentUser()].SendChannel <- tools.Action{
