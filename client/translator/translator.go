@@ -103,7 +103,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 			response = showTakeAction(action.PlayerId)
 			out = "gamelog"
 		case string(tools.GAME_ENDED):
-			response = string(action.Message)
+			response = "\n" + string(action.Message)
 			out = "gamelog"
 		default:
 			response = ""

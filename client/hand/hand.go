@@ -1,7 +1,6 @@
 package hand
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -68,14 +67,10 @@ func itsAPlayingCard(cardSent tools.Card) (bool, error) {
 	existingPosition := -1
 	existingPosition = searchCardPosition(cardSent, itsMyTurn)
 
-	if existingPosition == -1 {
-		return false, errors.New("card: You cannot drop that card")
+	if existingPosition != -1 {
+		userCards = append(userCards[:existingPosition], userCards[existingPosition+1:]...)
+		itsMyTurn = false
 	}
-
-	// remove card from my cards
-	userCards = append(userCards[:existingPosition], userCards[existingPosition+1:]...)
-	// it's not your turn anymore
-	itsMyTurn = false
 	return true, nil
 }
 

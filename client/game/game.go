@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"time"
+	"fmt"
 
 	"github.com/awesome-gocui/gocui"
 )
@@ -28,8 +29,19 @@ func (ga *Game) Run() {
 	time.Sleep(1 * time.Second)
 	ReceiveMsgFromGame(ga.G, ga)
 
+	ga.G.Update(close())
+
+	time.Sleep(5 * time.Second)
+
 	ga.G.Update(func(g *gocui.Gui) error {
-		time.Sleep(3 * time.Second)
 		return gocui.ErrQuit
 	})
+}
+
+func close() func(g *gocui.Gui) error {
+	return func(g *gocui.Gui) error{
+		v,_ := g.View("gamelog")
+		fmt.Fprintf(v,"\nConnection lost. The window will close in a few seconds...\n")
+		return nil
+	}
 }
