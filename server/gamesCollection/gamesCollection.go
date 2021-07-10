@@ -7,6 +7,7 @@ import (
 	"github.com/soyarielruiz/tdl-borbotones-go/server/user"
 	"net"
 	"sync"
+	"time"
 )
 
 type GamesCollection struct{
@@ -27,11 +28,11 @@ func NewCollection() *GamesCollection{
 
 func (collection *GamesCollection) CreateNewGame(conn net.Conn, nick string){
 	  fmt.Println("entre a crear nuevo juego")
-	  collection.gameNumber=collection.gameNumber+1
-	  users:=make(chan *user.User)
-	  new_game:=game.NewGame(users,collection.gameNumber)
-	  collection.games[collection.gameNumber]=new_game
-	  collection.gamesChannels[collection.gameNumber]=users
+	  collection.gameNumber = collection.gameNumber + 1
+	  users := make(chan *user.User)
+	  new_game := game.NewGame(users,collection.gameNumber)
+	  collection.games[collection.gameNumber] = new_game
+	  collection.gamesChannels[collection.gameNumber] = users
 	  go new_game.Run()
 	  users <- user.NewUser(conn, nick)
 }
@@ -40,12 +41,12 @@ func (collection *GamesCollection) SendExistingGames(conn net.Conn) int {
 	collection.mu.Lock()
 	var games []int
 	for game_id,game:= range collection.games{
-		if(!game.Started){
-			games=append(games,game_id)
+		if !game.Started {
+			games = append(games,game_id)
 		}
 	}
 	encoder := json.NewEncoder(conn)
-	gameOption:=LobbyOption{games}
+	gameOption := LobbyOption{games}
 	encoder.Encode(&gameOption)
 	defer collection.mu.Unlock()
 	return len(games)
@@ -67,5 +68,26 @@ func (collection GamesCollection) DeleteDeadGames(){
 		}
 	}
 	collection.mu.Unlock()
+}
+
+func (collection GamesCollection) AreAllGamesFinished() <- chan bool{
+	gamesFinished:= make (chan bool)
+	go func() {
+        defer close(gamesFinished)
+		for {
+			finishedGames := 0
+        	for _, game := range collection.games {
+				if game.Ended {
+					finishedGames = finishedGames + 1
+				}
+			}
+			if finishedGames == len(collection.games) {
+				break
+			}
+			time.Sleep(5 * time.Second)
+		}
+        gamesFinished <- true
+    }()
+    return gamesFinished
 }
 
