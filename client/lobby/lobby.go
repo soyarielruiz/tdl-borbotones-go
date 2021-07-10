@@ -29,9 +29,9 @@ type LobbyOption struct {
 	Nickname string `json:"nickname"`
 }
 
-func New(g *gocui.Gui) *Lobby {
-	tcpAddr, _ := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
-	conn, _ := net.DialTCP("tcp", nil, tcpAddr)
+func New(g *gocui.Gui) *Lobby, error {
+	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	conn.SetWriteBuffer(10)
 	return &Lobby{g, conn, json.NewEncoder(conn), json.NewDecoder(conn), nil}
 }
@@ -56,6 +56,10 @@ func (l *Lobby) Keybindings(g *gocui.Gui) error {
 	}
 
 	if err := g.SetKeybinding("wait", gocui.KeyF3, gocui.ModNone, l.Back); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding("timeout", gocui.KeyF3, gocui.ModNone, l.Back); err != nil {
 		return err
 	}
 
@@ -90,9 +94,9 @@ func (l *Lobby) keyHandler(ch rune) func(g *gocui.Gui, v *gocui.View) error {
 					return err
 				}
 				g.SetCurrentView(v.Name())
-				v.Title = "Esperando jugadores"
-				fmt.Fprintln(v, "F3 - Atras")
-				fmt.Fprintf(v, "Opcion seleccionada %d\n", key)
+				v.Title = "Waiting players"
+				fmt.Fprintln(v, "F3 - Back")
+				fmt.Fprintf(v, "Selected option %d\n", key)
 			}
 			go l.waitPlayer()
 		}
@@ -103,6 +107,16 @@ func (l *Lobby) keyHandler(ch rune) func(g *gocui.Gui, v *gocui.View) error {
 func (l *Lobby) Back(g *gocui.Gui, v *gocui.View) error {
 	if g.CurrentView().Name() == "wait" {
 		l.reconect()
+		if err := g.DeleteView("wait"); err != nil {
+			return err
+		}
+	}
+
+	if g.CurrentView().Name() == "timeout" {
+		l.reconect()
+		if err := g.DeleteView("timeout"); err != nil {
+			return err
+		}
 		if err := g.DeleteView("wait"); err != nil {
 			return err
 		}
@@ -131,10 +145,10 @@ func (l *Lobby) Home(g *gocui.Gui, v *gocui.View) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Bienvenidos a GUNO"
-		fmt.Fprintln(v, "F1 - Nuevo Juego")
-		fmt.Fprintln(v, "F2 - Buscar Partida")
-		fmt.Fprintln(v, "F3 - Salir")
+		v.Title = "Welcome to GUNO"
+		fmt.Fprintln(v, "F1 - New game")
+		fmt.Fprintln(v, "F2 - Find game")
+		fmt.Fprintln(v, "F3 - Exit")
 	}
 
 	if v, err := g.SetView("nick", 1, 6, 25, 8, gocui.TOP); err != nil {
@@ -160,9 +174,9 @@ func (l *Lobby) NewGame(g *gocui.Gui, v *gocui.View) error {
 				return err
 			}
 			g.SetCurrentView(v.Name())
-			v.Title = "Esperando jugadores"
-			fmt.Fprintln(v, "F3 - Atras")
-			fmt.Fprintln(v, "Nueva Partida")
+			v.Title = "Waiting players"
+			fmt.Fprintln(v, "F3 - Back")
+			fmt.Fprintln(v, "New game")
 		}
 		go l.waitPlayer()
 	}
@@ -181,12 +195,12 @@ func (l *Lobby) FindGame(g *gocui.Gui, v *gocui.View) error {
 				return err
 			}
 			g.SetCurrentView(v.Name())
-			v.Title = "Lista de Partidas"
-			fmt.Fprintln(v, "F3 - Atras")
+			v.Title = "Game list"
+			fmt.Fprintln(v, "F3 - Back")
 			fmt.Fprintln(v, "-----------------------")
 			l.Games = lo.Option
 			for i, game := range lo.Option {
-				fmt.Fprintln(v, strconv.Itoa(i+1)+" - Partida "+strconv.Itoa(game))
+				fmt.Fprintln(v, strconv.Itoa(i+1)+" - Game "+strconv.Itoa(game))
 			}
 		}
 	}
@@ -198,6 +212,21 @@ func (l *Lobby) waitPlayer() {
 	if err := l.Decoder.Decode(&start); err == nil {
 		ga := game.NewGame(l.G, l.Encoder, l.Decoder)
 		ga.Run()
+	} else {
+		l.G.Update(l.timeout())
+	}
+}
+
+func (l *Lobby) timeout() func (g *gocui.Gui) error {
+	return func (g *gocui.Gui) error {
+		v, _ := g.SetView("timeout", 27, 5, 52, 10, gocui.TOP)
+		v.Title = "Timeout"
+		g.SetCurrentView(v.Name())
+		fmt.Fprintln(v,"F3: Back")
+		fmt.Fprintln(v,"Time limit expired")
+		fmt.Fprintln(v,"Not enough players")
+		fmt.Fprintln(v,"connected")
+		return nil
 	}
 }
 
