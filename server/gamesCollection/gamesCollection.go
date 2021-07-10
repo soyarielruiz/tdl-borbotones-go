@@ -70,8 +70,8 @@ func (collection GamesCollection) DeleteDeadGames(){
 	collection.mu.Unlock()
 }
 
-func (collection GamesCollection) AreAllGamesFinished() <- chan bool{
-	gamesFinished:= make (chan bool)
+func (collection GamesCollection) AreAllGamesFinished() <- chan bool {
+	gamesFinished := make (chan bool)
 	go func() {
         defer close(gamesFinished)
 		for {
