@@ -29,9 +29,9 @@ type LobbyOption struct {
 	Nickname string `json:"nickname"`
 }
 
-func New(g *gocui.Gui) *Lobby, error {
-	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
-	conn, err := net.DialTCP("tcp", nil, tcpAddr)
+func New(g *gocui.Gui) *Lobby {
+	tcpAddr, _ := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
+	conn, _ := net.DialTCP("tcp", nil, tcpAddr)
 	conn.SetWriteBuffer(10)
 	return &Lobby{g, conn, json.NewEncoder(conn), json.NewDecoder(conn), nil}
 }
