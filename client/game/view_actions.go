@@ -52,7 +52,6 @@ func Layout(g *gocui.Gui) error {
 		}
 		v.Title = "Player"
 		v.Editable = true
-		v.Wrap = true
 
 		if _, err = setCurrentViewOnTop(g, "jugador"); err != nil {
 			return err
@@ -63,8 +62,6 @@ func Layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = "Hand"
-		v.Wrap = true
-		v.Autoscroll = false
 		v.Frame = true
 	}
 
@@ -73,8 +70,6 @@ func Layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = "Game log"
-		v.Wrap = true
-		v.Autoscroll = true
 	}
 
 	if v, err := g.SetView("mesa", maxX/2-1, 0, maxX-1, maxY/2-1, 0); err != nil {
@@ -82,8 +77,6 @@ func Layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = "Table"
-		v.Wrap = true
-		v.Autoscroll = true
 	}
 
 	if v, err := g.SetView("help", maxX/2-1, maxY/2, maxX-1, maxY-1, 0); err != nil {
@@ -91,8 +84,6 @@ func Layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = "Help"
-		v.Wrap = false
-		v.Autoscroll = false
 		v.Frame = true
 		initHelp(g, v)
 	}
@@ -109,14 +100,14 @@ func initHelp(g *gocui.Gui, v *gocui.View) {
 	fmt.Fprintf(v, YELLOW, "O\n")
 	fmt.Fprintf(v, RED, "======================================================================\n\n")
 	fmt.Fprintf(v, GREEN, "Game rules:\n")
-	fmt.Fprintf(v, "- If it's your turn drop a card that matches the number or suit of the"+
+	fmt.Fprintf(v, "- If it's your turn drop a card that matches the number or suit of the\n"+
 		"  card on the table.\n")
 	fmt.Fprintf(v, "- If you don't have one you must take one from the draw pile.\n")
-	fmt.Fprintf(v, "- If it's not your turn but you have a card that matches the one on"+
-		"     the table try to drop it and get ahead of the other players.\n\n")
+	fmt.Fprintf(v, "- If it's not your turn but you have a card that matches the one on\n"+
+		"  the table try to drop it and get ahead of the other players.\n\n")
 	fmt.Fprintf(v, YELLOW, "Commands:\n")
 	fmt.Fprintf(v, "- drop [color] [number] (e.g. drop red 5)\n"+
-		"- take (takes one card from draw pile)\n- list (displays your hand)\n- exit")
+		"- take (takes one card from draw pile)\n- exit")
 }
 
 func Quit(g *gocui.Gui, v *gocui.View) error {
@@ -154,6 +145,7 @@ func jugadorBind(game *Game) func(g *gocui.Gui, iv *gocui.View) error {
 			messageToSend, err := translator.CreateAnAction(messageToUse, g)
 			if err != nil {
 				out, _ := g.View("gamelog")
+				out.Clear()
 				fmt.Fprintf(out, "Error: %s. Try again!\n", err)
 			}
 

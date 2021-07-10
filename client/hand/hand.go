@@ -25,6 +25,7 @@ func CreateOrUpdateHand(gui *gocui.Gui, action tools.Action) error {
 
 		if action.Command == tools.TAKE && action.Card.Suit != "" {
 			userCards = append(userCards, action.Card)
+			itsMyTurn = false
 		}
 
 		hand := displayCards(userCards)
@@ -52,17 +53,18 @@ func displayCards(hand []tools.Card) string {
 	return "Your cards are: " + strings.Join(handToShow, ", ") + "\n"
 }
 
-func DropACard(words []string) (tools.Action, error) {
+func DropACard(words []string,  gui *gocui.Gui) (tools.Action, error) {
 	card := getCardFromMessage(words[1], words[2])
-	_, err := itsAPlayingCard(card)
-
-	if err != nil {
-		return tools.Action{}, err
+	ok := itsAPlayingCard(card)
+	view, err := gui.View("gamelog")
+	if ok && err ==nil{
+		view.Clear()
+		fmt.Fprintf(view, "Card dropped!")
 	}
 	return tools.Action{Command: tools.DROP, Card: card, Cards: []tools.Card{}}, nil
 }
 
-func itsAPlayingCard(cardSent tools.Card) (bool, error) {
+func itsAPlayingCard(cardSent tools.Card) bool {
 
 	existingPosition := -1
 	existingPosition = searchCardPosition(cardSent, itsMyTurn)
@@ -70,8 +72,9 @@ func itsAPlayingCard(cardSent tools.Card) (bool, error) {
 	if existingPosition != -1 {
 		userCards = append(userCards[:existingPosition], userCards[existingPosition+1:]...)
 		itsMyTurn = false
+		return true
 	}
-	return true, nil
+	return false
 }
 
 func searchCardPosition(cardSent tools.Card, withTurn bool) int {
@@ -117,22 +120,14 @@ func getCardFromMessage(color string, number string) tools.Card {
 	return tools.Card{Number: int(value), Suit: colorToUse}
 }
 
-func ShowHand(gui *gocui.Gui) error {
-	out, _ := gui.View("gamelog")
-	if len(userCards) > 0 {
-		hand := displayCards(userCards)
-		_, err := fmt.Fprint(out, hand)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func SaveCardOnTable(card tools.Card) {
 	cardOnTable = card
 }
 
-func ItsYourTurn(action tools.Action) {
+func ItsYourTurn() {
 	itsMyTurn = true
+}
+
+func IsMyTurn() bool {
+	return itsMyTurn
 }
