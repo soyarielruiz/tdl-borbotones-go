@@ -63,6 +63,7 @@ func Layout(g *gocui.Gui) error {
 		}
 		v.Title = "Hand"
 		v.Frame = true
+		v.Wrap = true
 	}
 
 	if v, err := g.SetView("gamelog", 0, maxY/2, maxX/2-1, maxY-1, 0); err != nil {

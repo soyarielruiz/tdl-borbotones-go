@@ -21,29 +21,47 @@ type LobbyOption struct{
 	Nickname string `json:"nickname"`
 }
 
-func Start() {
+type GameManager struct {
+	listener net.Listener
+	collection *gamesCollection.GamesCollection 
+}
+
+func NewGameManager() (*GameManager) {
+	 return &GameManager{collection:gamesCollection.NewCollection()}
+}
+
+func (manager *GameManager) Start() {
 	log.Println("Starting " + connType + " server on " + connHost + ":" + connPort)
 
 	server, err := net.Listen(connType, connHost+":"+connPort)
 	if err != nil {
-		log.Fatalln("Error listening:", err.Error())
+		log.Printf("Error listening:", err.Error())
 		os.Exit(1)
 	}
-
+	manager.listener = server
 	defer server.Close()
-	acceptConnections(server)
+
+	manager.acceptConnections()
 }
 
-func acceptConnections(listener net.Listener) {
-	collection := gamesCollection.NewCollection()
+func (manager *GameManager) Stop() {
+	manager.listener.Close()
+	log.Printf("Waiting for games to finish...\n")
+	games_finished := <-manager.collection.AreAllGamesFinished()
+	if games_finished {
+		log.Printf("All games finished. Quitting server \n")
+	}
+}
+
+func (manager *GameManager) acceptConnections() {
 	for {
-		client, err := listener.Accept()
-		log.Printf("New connection accepted from %s\n", client.RemoteAddr())
+		client, err := manager.listener.Accept()
 		if err != nil {
-			log.Fatalln("Error connecting:", err.Error())
-			return
+			log.Printf("Error connecting:", err.Error())
+			break
 		}
-		go lobby (client,collection)
+		log.Printf("New connection accepted from %s\n", client.RemoteAddr())
+		go lobby(client,manager.collection)
 	}
 }
 
@@ -64,7 +82,7 @@ func lobby(conn net.Conn, collection *gamesCollection.GamesCollection) {
 					continue 
 				}
 			}
-		}else{
+		} else {
 			conn.Close()
 		}
 		break
@@ -72,18 +90,18 @@ func lobby(conn net.Conn, collection *gamesCollection.GamesCollection) {
 	fmt.Println("sali del lobby")
 }
 
-func joinExistingGame(conn net.Conn,collection *gamesCollection.GamesCollection, nick string) bool{
+func joinExistingGame(conn net.Conn,collection *gamesCollection.GamesCollection, nick string) bool {
 	collection.DeleteDeadGames()
 	games:=collection.SendExistingGames(conn)
-	if games !=0{
+	if games !=0 {
 		decoder := json.NewDecoder(conn)
 		var gameNumber LobbyOption
-		if error:=decoder.Decode(&gameNumber); error!=nil{
+		if error:=decoder.Decode(&gameNumber); error!=nil {
 			return false
 		}
 		collection.AddUserToGame(conn,gameNumber.Option[0], nick)
 		return true
-	}else{
+	} else {
 		return false
 	}
 }
