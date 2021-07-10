@@ -36,21 +36,19 @@ func createActionFromCommand(words []string, gui *gocui.Gui) (tools.Action, erro
 
 	switch strings.ToLower(words[0]) {
 	case string(tools.DROP):
-		return checkDropCommand(words)
+		return checkDropCommand(words, gui)
 	case string(tools.EXIT):
 		return checkExitCommand(words)
 	case string(tools.TAKE):
 		return checkTakeCommand(words)
-	case "list":
-		return checkListCommand(words, gui)
 	default:
 		return tools.Action{}, errors.New("string: Command not recognized :" + words[0])
 	}
 }
 
-func checkDropCommand(words []string) (tools.Action, error) {
+func checkDropCommand(words []string, gui *gocui.Gui) (tools.Action, error) {
 	if len(words) >= 3 {
-		return hand.DropACard(words)
+		return hand.DropACard(words, gui)
 	} else {
 		return tools.Action{}, errors.New("string: Command not recognized")
 	}
@@ -72,14 +70,6 @@ func checkExitCommand(words []string) (tools.Action, error) {
 	}
 }
 
-func checkListCommand(words []string, gui *gocui.Gui) (tools.Action, error) {
-	if len(words) == 1 {
-		return tools.Action{}, hand.ShowHand(gui)
-	} else {
-		return tools.Action{}, errors.New("string: Command not recognized")
-	}
-}
-
 func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 	var response string
 	var out string
@@ -87,7 +77,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 	if string(action.Command) == string(tools.TURN_ASSIGNED) {
 		response = showTurnAssigned(action.PlayerId)
 		out = "gamelog"
-		hand.ItsYourTurn(action)
+		hand.ItsYourTurn()
 		return response, out, nil
 	}
 
@@ -103,7 +93,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 			response = showTakeAction(action.PlayerId)
 			out = "gamelog"
 		case string(tools.GAME_ENDED):
-			response = "\n" + string(action.Message)
+			response = string(action.Message)
 			out = "gamelog"
 		default:
 			response = ""
@@ -117,7 +107,7 @@ func TranslateMessageFromServer(action tools.Action) (string, string, error) {
 
 func showDropAction(playerId string, card tools.Card) string {
 	hand.SaveCardOnTable(card)
-	return fmt.Sprintf("%s throws %s %s", playerId, strings.ToUpper(string(card.Suit)), strconv.Itoa(card.Number))
+	return fmt.Sprintf("%s throws %s %s", playerId, string(card.Suit), strconv.Itoa(card.Number))
 }
 
 func showTakeAction(playerId string) string {
@@ -154,11 +144,22 @@ func ManageHand(action tools.Action) func(gui *gocui.Gui) error {
 	}
 }
 
+func isMyTurn(gui *gocui.Gui, action tools.Action) {
+	view, err := gui.View("jugador")
+	if hand.IsMyTurn() && err == nil {
+		view.BgColor = gocui.ColorBlack
+	} else if !hand.IsMyTurn() && err == nil{
+		view.BgColor = gocui.ColorDefault
+	}
+}
+
 func showFromServer(gui *gocui.Gui, action tools.Action) error {
 	if len(action.Command) > 1 {
 		message, viewToUse, err := TranslateMessageFromServer(action)
+		isMyTurn(gui,action)
 		if err == nil {
 			out, _ := gui.View(viewToUse)
+			out.Clear()
 			_, err := fmt.Fprintln(out, message)
 			if err != nil {
 				return err
@@ -167,6 +168,7 @@ func showFromServer(gui *gocui.Gui, action tools.Action) error {
 		}
 	} else if len(action.Message) > 0 {
 		out, _ := gui.View("gamelog")
+		out.Clear()
 		fmt.Fprintln(out, action.Message)
 	}
 	return nil
