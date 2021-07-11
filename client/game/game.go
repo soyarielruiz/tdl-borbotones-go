@@ -2,9 +2,9 @@ package game
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
-	"fmt"
 
 	"github.com/awesome-gocui/gocui"
 )
@@ -20,7 +20,7 @@ func NewGame(g *gocui.Gui, enc *json.Encoder, dec *json.Decoder) *Game {
 }
 
 func (ga *Game) Run() {
-	
+
 	ga.G.SetManagerFunc(Layout)
 	if err := InitKeybindings(ga.G, ga); err != nil {
 		log.Fatalln(err)
@@ -39,9 +39,9 @@ func (ga *Game) Run() {
 }
 
 func close() func(g *gocui.Gui) error {
-	return func(g *gocui.Gui) error{
-		v,_ := g.View("gamelog")
-		fmt.Fprintf(v,"\nConnection lost. The window will close in a few seconds...\n")
+	return func(g *gocui.Gui) error {
+		v, _ := g.View("gamelog")
+		fmt.Fprintf(v, "\nConnection lost. The window will close in a few seconds...\n")
 		return nil
 	}
 }

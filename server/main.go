@@ -7,12 +7,12 @@ import (
 )
 
 func main() {
-	 var input string
-	 manager := gameManager.NewGameManager()
-	 go manager.Start()
-	 fmt.Print("Press q to quit server: \n")
-	 for input != "q" {
+	var input string
+	manager := gameManager.NewGameManager()
+	go manager.Start()
+	fmt.Print("Press q to quit server: \n")
+	for input != "q" {
 		fmt.Scanln(&input)
-	 }
-	 manager.Stop()
+	}
+	manager.Stop()
 }

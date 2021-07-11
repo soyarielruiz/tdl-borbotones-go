@@ -16,22 +16,22 @@ const (
 	connType = "tcp"
 )
 
-type LobbyOption struct{
-	Option []int `json:"option"`
+type LobbyOption struct {
+	Option   []int  `json:"option"`
 	Nickname string `json:"nickname"`
 }
 
-type UserJoined struct{
-	success int `json:"success"`
+type UserJoined struct {
+	Success int `json:"success"`
 }
 
 type GameManager struct {
-	listener net.Listener
-	collection *gamesCollection.GamesCollection 
+	listener   net.Listener
+	collection *gamesCollection.GamesCollection
 }
 
-func NewGameManager() (*GameManager) {
-	 return &GameManager{collection:gamesCollection.NewCollection()}
+func NewGameManager() *GameManager {
+	return &GameManager{collection: gamesCollection.NewCollection()}
 }
 
 func (manager *GameManager) Start() {
@@ -39,7 +39,7 @@ func (manager *GameManager) Start() {
 
 	server, err := net.Listen(connType, connHost+":"+connPort)
 	if err != nil {
-		log.Printf("Error listening:", err.Error())
+		log.Printf("Error listening: %s", err.Error())
 		os.Exit(1)
 	}
 	manager.listener = server
@@ -61,7 +61,7 @@ func (manager *GameManager) acceptConnections() {
 	for {
 		client, err := manager.listener.Accept()
 		if err != nil {
-			log.Printf("Closed connection:", err.Error())
+			log.Printf("Closed connection: %s", err.Error())
 			break
 		}
 		log.Printf("New connection accepted from %s\n", client.RemoteAddr())
@@ -74,45 +74,44 @@ func (manager *GameManager) lobby(conn net.Conn) {
 	encoder := json.NewEncoder(conn)
 	var gameOption LobbyOption
 	for {
-		if error:=decoder.Decode(&gameOption); error==nil {
-			fmt.Fprintf(os.Stderr,"option: %s\n", gameOption)
-			if success := manager.executeOption(conn,gameOption,decoder,encoder); success {
-				break 
+		if error := decoder.Decode(&gameOption); error == nil {
+			fmt.Fprintf(os.Stderr, "option: %s\n", gameOption)
+			if success := manager.executeOption(conn, gameOption, decoder, encoder); success {
+				break
 			}
 		} else {
 			conn.Close()
-			break 
+			break
 		}
 	}
 	fmt.Println("sali del lobby")
 }
 
-
 func (manager *GameManager) executeOption(conn net.Conn, gameOption LobbyOption, decoder *json.Decoder, encoder *json.Encoder) bool {
 	option := gameOption.Option[0]
 	nick := gameOption.Nickname
 	switch option {
-		case 1 : 
-			manager.collection.CreateNewGame(conn,nick)
-			return true
-		case 2: 
-			success := manager.joinExistingGame(conn,nick,decoder,encoder)
-			return success
-		default:
-			return false
+	case 1:
+		manager.collection.CreateNewGame(conn, nick)
+		return true
+	case 2:
+		success := manager.joinExistingGame(conn, nick, decoder, encoder)
+		return success
+	default:
+		return false
 	}
 }
 
 func (manager *GameManager) joinExistingGame(conn net.Conn, nick string, decoder *json.Decoder, encoder *json.Encoder) bool {
 	manager.collection.DeleteDeadGames()
-	games:=manager.collection.SendExistingGames(conn, encoder)
-	if games !=0 {
+	games := manager.collection.SendExistingGames(conn, encoder)
+	if games != 0 {
 		var gameNumber LobbyOption
-		if error := decoder.Decode(&gameNumber); error!=nil {
+		if error := decoder.Decode(&gameNumber); error != nil {
 			return false
 		}
-		success := manager.collection.AddUserToGame(conn,gameNumber.Option[0], nick)
-		sendIfJoined(success,decoder,encoder)
+		success := manager.collection.AddUserToGame(conn, gameNumber.Option[0], nick)
+		sendIfJoined(success, decoder, encoder)
 		return success
 	} else {
 		return false
@@ -122,11 +121,11 @@ func (manager *GameManager) joinExistingGame(conn net.Conn, nick string, decoder
 func sendIfJoined(success bool, decoder *json.Decoder, encoder *json.Encoder) {
 	if success {
 		status := UserJoined{50}
-		//encoder.Encode(&status)
+		encoder.Encode(&status)
 		fmt.Println("status: ", status)
 	} else {
 		status := UserJoined{90}
-		//encoder.Encode(&status)
+		encoder.Encode(&status)
 		fmt.Println("status: ", status)
 	}
 }

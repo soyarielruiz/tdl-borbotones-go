@@ -1,8 +1,9 @@
 package deck
 
 import (
-	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"testing"
+
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
 
 func TestDeck_GetCardFromDeck(t *testing.T) {

@@ -58,12 +58,12 @@ func (game *Game) Run() {
 func (game *Game) recvUsers() {
 	for {
 		select {
-			case u := <-game.UserChan:
-				game.addUser(u)
-			case <-time.After(10 * time.Second):
-				game.closeAll()
-				game.Ended = true
-				return
+		case u := <-game.UserChan:
+			game.addUser(u)
+		case <-time.After(10 * time.Second):
+			game.closeAll()
+			game.Ended = true
+			return
 		}
 		if len(game.Users) == 3 {
 			log.Printf("3 users connect to game %d. Starting game", game.GameNumber)
@@ -74,7 +74,7 @@ func (game *Game) recvUsers() {
 	}
 }
 
-func (game *Game) addUser(u *user.User){
+func (game *Game) addUser(u *user.User) {
 	u.ReceiveChannel = game.RecvChan
 	go u.Receive()
 	log.Printf("New usr received in game %d. %s", game.GameNumber, u)
@@ -121,5 +121,5 @@ func (game *Game) sendInitialCards() {
 }
 
 func (game *Game) IsAvailableToJoin() bool {
-	 return (!game.Ended && !game.Started)
+	return (!game.Ended && !game.Started)
 }
