@@ -52,7 +52,7 @@ func (collection *GamesCollection) SendExistingGames(conn net.Conn, encoder *jso
 	return len(games)
 }
 
-func (collection GamesCollection) AddUserToGame(conn net.Conn, gameId int, nick string) bool {
+func (collection *GamesCollection) AddUserToGame(conn net.Conn, gameId int, nick string) bool {
 	collection.mu.Lock()
 	if collection.games[gameId].IsAvailableToJoin() {
 		gameChannel := collection.gamesChannels[gameId]
@@ -64,7 +64,7 @@ func (collection GamesCollection) AddUserToGame(conn net.Conn, gameId int, nick 
 	return false
 }
 
-func (collection GamesCollection) DeleteDeadGames() {
+func (collection *GamesCollection) DeleteDeadGames() {
 	collection.mu.Lock()
 	for game_id, game := range collection.games {
 		if game.Ended {
@@ -75,7 +75,7 @@ func (collection GamesCollection) DeleteDeadGames() {
 	collection.mu.Unlock()
 }
 
-func (collection GamesCollection) AreAllGamesFinished() <-chan bool {
+func (collection *GamesCollection) AreAllGamesFinished() <-chan bool {
 	gamesFinished := make(chan bool)
 	go func() {
 		defer close(gamesFinished)
