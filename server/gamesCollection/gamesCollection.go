@@ -37,7 +37,7 @@ func (collection *GamesCollection) CreateNewGame(conn net.Conn, nick string){
 	  users <- user.NewUser(conn, nick)
 }
 
-func (collection *GamesCollection) SendExistingGames(conn net.Conn) int {
+func (collection *GamesCollection) SendExistingGames(conn net.Conn, encoder *json.Encoder) int {
 	collection.mu.Lock()
 	var games []int
 	for game_id,game:= range collection.games{
@@ -45,18 +45,22 @@ func (collection *GamesCollection) SendExistingGames(conn net.Conn) int {
 			games = append(games,game_id)
 		}
 	}
-	encoder := json.NewEncoder(conn)
 	gameOption := LobbyOption{games}
 	encoder.Encode(&gameOption)
 	defer collection.mu.Unlock()
 	return len(games)
 }
 
-func (collection GamesCollection) AddUserToGame(conn net.Conn, gameId int, nick string){
+func (collection GamesCollection) AddUserToGame(conn net.Conn, gameId int, nick string) bool {
 	collection.mu.Lock()
-	gameChannel:=collection.gamesChannels[gameId]
-	gameChannel <- user.NewUser(conn, nick)
-	collection.mu.Unlock()
+	if collection.games[gameId].IsAvailableToJoin() {
+		gameChannel := collection.gamesChannels[gameId]
+		gameChannel <- user.NewUser(conn, nick)
+		defer collection.mu.Unlock()
+		return true
+	}
+	defer collection.mu.Unlock()
+	return false 
 }
 
 func (collection GamesCollection) DeleteDeadGames(){

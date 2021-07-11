@@ -119,3 +119,7 @@ func (game *Game) sendInitialCards() {
 		Cards:    nil,
 	}
 }
+
+func (game *Game) IsAvailableToJoin() bool {
+	 return (!game.Ended && !game.Started)
+}
