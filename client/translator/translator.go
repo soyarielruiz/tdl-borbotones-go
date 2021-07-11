@@ -148,7 +148,7 @@ func isMyTurn(gui *gocui.Gui, action tools.Action) {
 	view, err := gui.View("jugador")
 	if hand.IsMyTurn() && err == nil {
 		view.BgColor = gocui.ColorBlack
-	} else if !hand.IsMyTurn() && err == nil{
+	} else if !hand.IsMyTurn() && err == nil {
 		view.BgColor = gocui.ColorDefault
 	}
 }
@@ -156,7 +156,7 @@ func isMyTurn(gui *gocui.Gui, action tools.Action) {
 func showFromServer(gui *gocui.Gui, action tools.Action) error {
 	if len(action.Command) > 1 {
 		message, viewToUse, err := TranslateMessageFromServer(action)
-		isMyTurn(gui,action)
+		isMyTurn(gui, action)
 		if err == nil {
 			out, _ := gui.View(viewToUse)
 			out.Clear()

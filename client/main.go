@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/awesome-gocui/gocui"
@@ -10,22 +11,27 @@ import (
 func main() {
 
 	g, err := gocui.NewGui(gocui.OutputNormal, false)
-	g.Cursor = true
-	g.Mouse = true
-	l := lobby.New(g)
 	if err != nil {
 		log.Panicln(err)
 	}
+	g.Cursor = true
+	g.Mouse = true
 	defer g.Close()
 
-	g.SetManagerFunc(l.Layout)
+	l, err := lobby.New(g)
+	if err == nil {
+		g.SetManagerFunc(l.Layout)
 
-	if err := l.Keybindings(g); err != nil {
-		log.Panicln(err)
-	}
+		if err := l.Keybindings(g); err != nil {
+			log.Panicln(err)
+		}
 
-	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-		log.Panicln(err)
+		if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
+			log.Panicln(err)
+		}
+	} else {
+		g.Close()
+		fmt.Println("The server is offline")
 	}
 
 }

@@ -38,7 +38,7 @@ func NewUser(conn net.Conn, nick string) *User {
 func (usr *User) Send() {
 	encoder := json.NewEncoder(usr.conn)
 	for !usr.Closed {
-		action,ok := <-usr.SendChannel
+		action, ok := <-usr.SendChannel
 		if ok {
 			log.Printf("Sending action to usr %s", action)
 			encoder.Encode(&action)

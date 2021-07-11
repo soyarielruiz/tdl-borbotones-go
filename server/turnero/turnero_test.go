@@ -8,16 +8,16 @@ import (
 )
 
 func TestTurneroCrearConMapaVacio(t *testing.T) {
-	m := make(map[string]user.User)
+	m := make(map[string]*user.User)
 	if turnero.New(m) != nil {
 		t.Fail()
 	}
 }
 
 func TestTurneroNext(t *testing.T) {
-	m := make(map[string]user.User)
-	m["lucho"] = user.User{PlayerId: "lucho"}
-	m["santi"] = user.User{PlayerId: "santi"}
+	m := make(map[string]*user.User)
+	m["lucho"] = &user.User{PlayerId: "lucho"}
+	m["santi"] = &user.User{PlayerId: "santi"}
 	tu := turnero.New(m)
 	if tu.CurrentUser() != "lucho" {
 		t.Errorf("Expected lucho - Actual %s", tu.CurrentUser())
@@ -25,9 +25,9 @@ func TestTurneroNext(t *testing.T) {
 }
 
 func TestTurneroNextAll(t *testing.T) {
-	m := make(map[string]user.User)
-	m["lucho"] = user.User{PlayerId: "lucho"}
-	m["santi"] = user.User{PlayerId: "santi"}
+	m := make(map[string]*user.User)
+	m["lucho"] = &user.User{PlayerId: "lucho"}
+	m["santi"] = &user.User{PlayerId: "santi"}
 	tu := turnero.New(m)
 	if tu.CurrentUser() != "lucho" {
 		t.Errorf("Expected lucho - Actual %s", tu.CurrentUser())
@@ -43,11 +43,11 @@ func TestTurneroNextAll(t *testing.T) {
 }
 
 func TestTurneroGoToAndNext(t *testing.T) {
-	m := make(map[string]user.User)
-	m["ari"] = user.User{PlayerId: "ari"}
-	m["ele"] = user.User{PlayerId: "ele"}
-	m["lucho"] = user.User{PlayerId: "lucho"}
-	m["santi"] = user.User{PlayerId: "santi"}
+	m := make(map[string]*user.User)
+	m["ari"] = &user.User{PlayerId: "ari"}
+	m["ele"] = &user.User{PlayerId: "ele"}
+	m["lucho"] = &user.User{PlayerId: "lucho"}
+	m["santi"] = &user.User{PlayerId: "santi"}
 	tu := turnero.New(m)
 	tu.GoTo("lucho")
 	if tu.CurrentUser() != "lucho" {
@@ -56,11 +56,11 @@ func TestTurneroGoToAndNext(t *testing.T) {
 }
 
 func TestTurneroChangeDirection(t *testing.T) {
-	m := make(map[string]user.User)
-	m["ari"] = user.User{PlayerId: "ari"}
-	m["ele"] = user.User{PlayerId: "ele"}
-	m["lucho"] = user.User{PlayerId: "lucho"}
-	m["santi"] = user.User{PlayerId: "santi"}
+	m := make(map[string]*user.User)
+	m["ari"] = &user.User{PlayerId: "ari"}
+	m["ele"] = &user.User{PlayerId: "ele"}
+	m["lucho"] = &user.User{PlayerId: "lucho"}
+	m["santi"] = &user.User{PlayerId: "santi"}
 	tu := turnero.New(m)
 	tu.ChangeDirection()
 	if tu.CurrentUser() != "ari" {
@@ -73,10 +73,10 @@ func TestTurneroChangeDirection(t *testing.T) {
 }
 
 func TestTurneroTurnFirstRemoveLastRightDirection(t *testing.T) {
-	m := make(map[string]user.User)
-	m["ari"] = user.User{PlayerId: "ari"}
-	m["ele"] = user.User{PlayerId: "ele"}
-	m["lucho"] = user.User{PlayerId: "lucho"}
+	m := make(map[string]*user.User)
+	m["ari"] = &user.User{PlayerId: "ari"}
+	m["ele"] = &user.User{PlayerId: "ele"}
+	m["lucho"] = &user.User{PlayerId: "lucho"}
 	tu := turnero.New(m)
 	tu.Remove("lucho")
 	if tu.CurrentUser() != "ari" {
@@ -93,10 +93,10 @@ func TestTurneroTurnFirstRemoveLastRightDirection(t *testing.T) {
 }
 
 func TestTurneroTurnFirstRemoveFirstRightDirection(t *testing.T) {
-	m := make(map[string]user.User)
-	m["ari"] = user.User{PlayerId: "ari"}
-	m["ele"] = user.User{PlayerId: "ele"}
-	m["lucho"] = user.User{PlayerId: "lucho"}
+	m := make(map[string]*user.User)
+	m["ari"] = &user.User{PlayerId: "ari"}
+	m["ele"] = &user.User{PlayerId: "ele"}
+	m["lucho"] = &user.User{PlayerId: "lucho"}
 	tu := turnero.New(m)
 	tu.Remove("ari")
 	if tu.CurrentUser() != "ele" {
@@ -105,10 +105,10 @@ func TestTurneroTurnFirstRemoveFirstRightDirection(t *testing.T) {
 }
 
 func TestTurneroTurnMiddleRemoveMiddleRightDirection(t *testing.T) {
-	m := make(map[string]user.User)
-	m["ele"] = user.User{PlayerId: "ele"}
-	m["lucho"] = user.User{PlayerId: "lucho"}
-	m["santi"] = user.User{PlayerId: "santi"}
+	m := make(map[string]*user.User)
+	m["ele"] = &user.User{PlayerId: "ele"}
+	m["lucho"] = &user.User{PlayerId: "lucho"}
+	m["santi"] = &user.User{PlayerId: "santi"}
 	tu := turnero.New(m)
 	tu.Next()
 	tu.Remove("lucho")
@@ -118,10 +118,10 @@ func TestTurneroTurnMiddleRemoveMiddleRightDirection(t *testing.T) {
 }
 
 func TestTurneroTurnLastRemoveFirstRightDirection(t *testing.T) {
-	m := make(map[string]user.User)
-	m["ele"] = user.User{PlayerId: "ele"}
-	m["lucho"] = user.User{PlayerId: "lucho"}
-	m["santi"] = user.User{PlayerId: "santi"}
+	m := make(map[string]*user.User)
+	m["ele"] = &user.User{PlayerId: "ele"}
+	m["lucho"] = &user.User{PlayerId: "lucho"}
+	m["santi"] = &user.User{PlayerId: "santi"}
 	tu := turnero.New(m)
 	tu.GoTo("santi")
 	tu.Remove("ele")
@@ -131,10 +131,10 @@ func TestTurneroTurnLastRemoveFirstRightDirection(t *testing.T) {
 }
 
 func TestTurneroTurnFirstRemoveLastLeftDirection(t *testing.T) {
-	m := make(map[string]user.User)
-	m["ari"] = user.User{PlayerId: "ari"}
-	m["ele"] = user.User{PlayerId: "ele"}
-	m["lucho"] = user.User{PlayerId: "lucho"}
+	m := make(map[string]*user.User)
+	m["ari"] = &user.User{PlayerId: "ari"}
+	m["ele"] = &user.User{PlayerId: "ele"}
+	m["lucho"] = &user.User{PlayerId: "lucho"}
 	tu := turnero.New(m)
 	tu.ChangeDirection()
 	tu.Remove("lucho")
@@ -148,10 +148,10 @@ func TestTurneroTurnFirstRemoveLastLeftDirection(t *testing.T) {
 }
 
 func TestTurneroTurnFirstRemoveFirstLeftDirection(t *testing.T) {
-	m := make(map[string]user.User)
-	m["ari"] = user.User{PlayerId: "ari"}
-	m["ele"] = user.User{PlayerId: "ele"}
-	m["lucho"] = user.User{PlayerId: "lucho"}
+	m := make(map[string]*user.User)
+	m["ari"] = &user.User{PlayerId: "ari"}
+	m["ele"] = &user.User{PlayerId: "ele"}
+	m["lucho"] = &user.User{PlayerId: "lucho"}
 	tu := turnero.New(m)
 	tu.ChangeDirection()
 	tu.Remove("ari")
@@ -161,10 +161,10 @@ func TestTurneroTurnFirstRemoveFirstLeftDirection(t *testing.T) {
 }
 
 func TestTurneroTurnMiddleRemoveMiddleLeftDirection(t *testing.T) {
-	m := make(map[string]user.User)
-	m["ele"] = user.User{PlayerId: "ele"}
-	m["lucho"] = user.User{PlayerId: "lucho"}
-	m["santi"] = user.User{PlayerId: "santi"}
+	m := make(map[string]*user.User)
+	m["ele"] = &user.User{PlayerId: "ele"}
+	m["lucho"] = &user.User{PlayerId: "lucho"}
+	m["santi"] = &user.User{PlayerId: "santi"}
 	tu := turnero.New(m)
 	tu.Next()
 	tu.ChangeDirection()
@@ -175,10 +175,10 @@ func TestTurneroTurnMiddleRemoveMiddleLeftDirection(t *testing.T) {
 }
 
 func TestTurneroTurnLastRemoveFirstLeftDirection(t *testing.T) {
-	m := make(map[string]user.User)
-	m["ele"] = user.User{PlayerId: "ele"}
-	m["lucho"] = user.User{PlayerId: "lucho"}
-	m["santi"] = user.User{PlayerId: "santi"}
+	m := make(map[string]*user.User)
+	m["ele"] = &user.User{PlayerId: "ele"}
+	m["lucho"] = &user.User{PlayerId: "lucho"}
+	m["santi"] = &user.User{PlayerId: "santi"}
 	tu := turnero.New(m)
 	tu.ChangeDirection()
 	tu.GoTo("santi")

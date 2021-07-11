@@ -3,11 +3,11 @@ package lobby
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/awesome-gocui/gocui"
-	"github.com/soyarielruiz/tdl-borbotones-go/client/game"
-	"log"
 	"net"
 	"strconv"
+
+	"github.com/awesome-gocui/gocui"
+	"github.com/soyarielruiz/tdl-borbotones-go/client/game"
 )
 
 const (
@@ -29,11 +29,21 @@ type LobbyOption struct {
 	Nickname string `json:"nickname"`
 }
 
-func New(g *gocui.Gui) *Lobby {
-	tcpAddr, _ := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
-	conn, _ := net.DialTCP("tcp", nil, tcpAddr)
+type UserJoined struct {
+	Success int `json:"success"`
+}
+
+func New(g *gocui.Gui) (*Lobby, error) {
+	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
+	if err != nil {
+		return nil, err
+	}
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
+	if err != nil {
+		return nil, err
+	}
 	conn.SetWriteBuffer(10)
-	return &Lobby{g, conn, json.NewEncoder(conn), json.NewDecoder(conn), nil}
+	return &Lobby{g, conn, json.NewEncoder(conn), json.NewDecoder(conn), nil}, nil
 }
 
 func (l *Lobby) Layout(g *gocui.Gui) error {
@@ -52,6 +62,10 @@ func (l *Lobby) Keybindings(g *gocui.Gui) error {
 	}
 
 	if err := g.SetKeybinding("nick", gocui.KeyF3, gocui.ModNone, l.Quit); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding("lost", gocui.KeyF3, gocui.ModNone, l.Quit); err != nil {
 		return err
 	}
 
@@ -86,34 +100,33 @@ func (l *Lobby) keyHandler(ch rune) func(g *gocui.Gui, v *gocui.View) error {
 		if 0 < key && key <= len(l.Games) {
 			lo := LobbyOption{[]int{l.Games[key-1]}, ""}
 			l.Encoder.Encode(lo)
-			if err := g.DeleteView("gamelist"); err != nil {
-				return err
-			}
-			if v, err := g.SetView("wait", 27, 1, 52, 4, gocui.TOP); err != nil {
-				if err != gocui.ErrUnknownView {
-					return err
-				}
+			var suc UserJoined
+			l.Decoder.Decode(&suc)
+			g.DeleteView("gamelist")
+			if suc.Success == 50 {
+				v, _ := g.SetView("wait", 27, 1, 52, 4, gocui.TOP)
 				g.SetCurrentView(v.Name())
 				v.Title = "Waiting players"
 				fmt.Fprintln(v, "F3 - Back")
 				fmt.Fprintf(v, "Selected option %d\n", key)
+				go l.waitPlayer()
+			} else {
+				v, _ := g.SetView("wait", 27, 1, 52, 5, gocui.TOP)
+				v.Title = "Error"
+				g.SetCurrentView(v.Name())
+				fmt.Fprintln(v, "F3 - Back")
+				fmt.Fprintln(v, "Game selected not")
+				fmt.Fprintln(v, "exists")
 			}
-			go l.waitPlayer()
 		}
 		return nil
 	}
 }
 
 func (l *Lobby) Back(g *gocui.Gui, v *gocui.View) error {
-	if g.CurrentView().Name() == "wait" {
-		l.reconect()
-		if err := g.DeleteView("wait"); err != nil {
-			return err
-		}
-	}
+	l.reconect()
 
 	if g.CurrentView().Name() == "timeout" {
-		l.reconect()
 		if err := g.DeleteView("timeout"); err != nil {
 			return err
 		}
@@ -122,8 +135,13 @@ func (l *Lobby) Back(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
+	if g.CurrentView().Name() == "wait" {
+		if err := g.DeleteView("wait"); err != nil {
+			return err
+		}
+	}
+
 	if g.CurrentView().Name() == "gamelist" {
-		l.reconect()
 		if err := g.DeleteView("gamelist"); err != nil {
 			return err
 		}
@@ -168,17 +186,20 @@ func (l *Lobby) NewGame(g *gocui.Gui, v *gocui.View) error {
 	nick := v.Buffer()
 	if nick != "" {
 		lo := LobbyOption{[]int{1}, v.Buffer()}
-		l.Encoder.Encode(lo)
-		if v, err := g.SetView("wait", 27, 1, 52, 4, gocui.TOP); err != nil {
-			if err != gocui.ErrUnknownView {
-				return err
-			}
+		err := l.Encoder.Encode(lo)
+		if err != nil {
+			v, _ := g.SetView("lost", 1, 9, 25, 11, gocui.TOP)
+			g.SetCurrentView(v.Name())
+			v.Title = "Server"
+			fmt.Fprintln(v, "Connection lost")
+		} else {
+			v, _ := g.SetView("wait", 27, 1, 52, 4, gocui.TOP)
 			g.SetCurrentView(v.Name())
 			v.Title = "Waiting players"
 			fmt.Fprintln(v, "F3 - Back")
 			fmt.Fprintln(v, "New game")
+			go l.waitPlayer()
 		}
-		go l.waitPlayer()
 	}
 	return nil
 }
@@ -188,12 +209,15 @@ func (l *Lobby) FindGame(g *gocui.Gui, v *gocui.View) error {
 	if nick != "" {
 		lo := LobbyOption{[]int{2}, v.Buffer()}
 		l.Encoder.Encode(lo)
-		l.Decoder.Decode(&lo)
-		_, y := g.Size()
-		if v, err := g.SetView("gamelist", 27, 1, 52, y-3, gocui.TOP); err != nil {
-			if err != gocui.ErrUnknownView {
-				return err
-			}
+		err := l.Decoder.Decode(&lo)
+		if err != nil {
+			v, _ := g.SetView("lost", 1, 9, 25, 11, gocui.TOP)
+			g.SetCurrentView(v.Name())
+			v.Title = "Server"
+			fmt.Fprintln(v, "Connection lost")
+		} else {
+			_, y := g.Size()
+			v, _ := g.SetView("gamelist", 27, 1, 52, y-3, gocui.TOP)
 			g.SetCurrentView(v.Name())
 			v.Title = "Game list"
 			fmt.Fprintln(v, "F3 - Back")
@@ -217,31 +241,32 @@ func (l *Lobby) waitPlayer() {
 	}
 }
 
-func (l *Lobby) timeout() func (g *gocui.Gui) error {
-	return func (g *gocui.Gui) error {
+func (l *Lobby) timeout() func(g *gocui.Gui) error {
+	return func(g *gocui.Gui) error {
 		v, _ := g.SetView("timeout", 27, 5, 52, 10, gocui.TOP)
 		v.Title = "Timeout"
 		g.SetCurrentView(v.Name())
-		fmt.Fprintln(v,"F3: Back")
-		fmt.Fprintln(v,"Time limit expired")
-		fmt.Fprintln(v,"Not enough players")
-		fmt.Fprintln(v,"connected")
+		fmt.Fprintln(v, "F3: Back")
+		fmt.Fprintln(v, "Time limit expired")
+		fmt.Fprintln(v, "Not enough players")
+		fmt.Fprintln(v, "connected")
 		return nil
 	}
 }
 
-func (l *Lobby) reconect() {
+func (l *Lobby) reconect() error {
 	l.Conn.Close()
 	tcpAddr, err := net.ResolveTCPAddr(serverConn, serverAddress+":"+serverPort)
 	if err != nil {
-		log.Panic(err)
+		return err
 	}
 	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	if err != nil {
-		log.Panic(err)
+		return err
 	}
 	conn.SetWriteBuffer(10)
 	l.Conn = conn
 	l.Encoder = json.NewEncoder(conn)
 	l.Decoder = json.NewDecoder(conn)
+	return nil
 }

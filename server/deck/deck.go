@@ -1,10 +1,11 @@
 package deck
 
 import (
-	"github.com/soyarielruiz/tdl-borbotones-go/server/stack"
-	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 	"math/rand"
 	"time"
+
+	"github.com/soyarielruiz/tdl-borbotones-go/server/stack"
+	"github.com/soyarielruiz/tdl-borbotones-go/tools"
 )
 
 type Deck struct {
@@ -16,7 +17,7 @@ func NewDeck() *Deck {
 	deck := Deck{stack.New(), stack.New()}
 	numbers := [10]int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	suits := [4]tools.Suit{tools.RED, tools.GREEN, tools.BLUE, tools.YELLOW}
-	for i:=1; i<3; i++ {
+	for i := 1; i < 3; i++ {
 		for _, s := range suits {
 			for _, n := range numbers {
 				deck.discardStack.Push(tools.Card{n, s})

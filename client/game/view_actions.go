@@ -153,7 +153,7 @@ func jugadorBind(game *Game) func(g *gocui.Gui, iv *gocui.View) error {
 			if translator.MustLeave(messageToSend) {
 				return Quit(g, iv)
 			}
-      
+
 			if translator.HaveActionToSend(messageToSend) {
 				if err := game.Encoder.Encode(&messageToSend); err != nil {
 					return Quit(g, iv)

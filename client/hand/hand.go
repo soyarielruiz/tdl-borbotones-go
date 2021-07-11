@@ -53,11 +53,11 @@ func displayCards(hand []tools.Card) string {
 	return "Your cards are: " + strings.Join(handToShow, ", ") + "\n"
 }
 
-func DropACard(words []string,  gui *gocui.Gui) (tools.Action, error) {
+func DropACard(words []string, gui *gocui.Gui) (tools.Action, error) {
 	card := getCardFromMessage(words[1], words[2])
 	ok := itsAPlayingCard(card)
 	view, err := gui.View("gamelog")
-	if ok && err ==nil{
+	if ok && err == nil {
 		view.Clear()
 		fmt.Fprintf(view, "Card dropped!")
 	}
