@@ -33,6 +33,7 @@ func (t DropHandler) Handle(action tools.Action, game *Game) {
 		game.SendToAll(&action)
 		game.Tur.GoTo(action.PlayerId)
 		game.TurnMoveForward()
+		game.Users[action.PlayerId].CardsLeft--
 	} else {
 		game.Users[action.PlayerId].SendChannel <- tools.CreateFromMessage(action.PlayerId, "It's not your turn!")
 	}

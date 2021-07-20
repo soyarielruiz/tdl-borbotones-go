@@ -84,7 +84,6 @@ func (manager *GameManager) lobby(conn net.Conn) {
 			break
 		}
 	}
-	fmt.Println("sali del lobby")
 }
 
 func (manager *GameManager) executeOption(conn net.Conn, gameOption LobbyOption, decoder *json.Decoder, encoder *json.Encoder) bool {
@@ -122,10 +121,8 @@ func sendIfJoined(success bool, decoder *json.Decoder, encoder *json.Encoder) {
 	if success {
 		status := UserJoined{50}
 		encoder.Encode(&status)
-		fmt.Println("status: ", status)
 	} else {
 		status := UserJoined{90}
 		encoder.Encode(&status)
-		fmt.Println("status: ", status)
 	}
 }

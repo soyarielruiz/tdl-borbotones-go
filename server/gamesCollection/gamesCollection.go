@@ -2,7 +2,6 @@ package gamesCollection
 
 import (
 	"encoding/json"
-	"fmt"
 	"net"
 	"sync"
 	"time"
@@ -28,7 +27,6 @@ func NewCollection() *GamesCollection {
 }
 
 func (collection *GamesCollection) CreateNewGame(conn net.Conn, nick string) {
-	fmt.Println("entre a crear nuevo juego")
 	collection.gameNumber = collection.gameNumber + 1
 	users := make(chan *user.User)
 	new_game := game.NewGame(users, collection.gameNumber)

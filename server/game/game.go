@@ -60,7 +60,7 @@ func (game *Game) recvUsers() {
 		select {
 		case u := <-game.UserChan:
 			game.addUser(u)
-		case <-time.After(10 * time.Second):
+		case <-time.After(60 * time.Second):
 			game.closeAll()
 			game.Ended = true
 			return
